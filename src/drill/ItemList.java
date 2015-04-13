@@ -1,0 +1,624 @@
+package drill;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.PriorityQueue;
+import java.util.Set;
+import java.util.prefs.Preferences;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * This class maintains a list of Items to be learned, and when and in what
+ * order Items should be presented for future study. An overall difficulty
+ * level is maintained.
+ * 
+ * @author David Matuszek
+ * @version Mar 2, 2015
+ */
+public class ItemList extends ArrayList<Item> {
+    private PriorityQueue<Item> queue; // Non-virgin items, in priority order    
+    private Preferences userPrefs;
+    private File itemFile;
+    /** 
+     * Difficulty level set by user.
+     * 2.0 is very easy, 3.0 is moderate, 4.0 is very difficult
+     */
+    static double difficulty = 3.0;
+    
+    /** 
+     * When a virgin item is gotten correct, pretend it has been answered
+     * correctly several times. 
+     */
+    static final int virginPromotion = 6;
+    
+    /**
+     * Constructor for ItemList objects. Creates a new, empty ItemList and
+     * a new, empty PriorityQueue of Items to be presented.
+     */
+    ItemList() {
+        super(500);
+        itemFile = null;
+        Time.now = 0;
+        queue = new PriorityQueue<Item>(100);
+    }
+    
+    /**
+     * @return The current difficulty level set for this ItemList.
+     */
+    static double getDifficulty() {
+        return difficulty;
+    }
+    
+    /**
+     * Returns the queue of items, for testing purposes only!
+     * @return The queue of items.
+     */
+    PriorityQueue<Item> getQueue() {
+        return queue;
+    }
+    
+    /**
+     * Asks the user for a new file in which to begin creating a new ItemList,
+     * and empties the current ItemList and PriorityQueue.
+     * 
+     * @throws IOException If the file could not be created.
+     */
+    void newFile() throws IOException {
+        userPrefs = Preferences.userNodeForPackage(Drill.class);
+        String parent = userPrefs.get("BuildDirectory", null);
+        itemFile = IO.getOutputFile(parent);
+        if (itemFile == null) {
+            throw new IOException("File was not created.");
+        }
+        clear();
+        queue.clear();
+        userPrefs.put("BuildDirectory", itemFile.getParent());
+    }
+
+    /**
+     * Asks the user to choose a data file, then reads it in.
+     * @param c The actual class (e.g. Drill) to load
+     * @throws IOException If the file can't be read.
+     * @throws IllegalArgumentException If there is an error in the input file.
+     */
+    void load(Class<?> c) throws IOException, IllegalArgumentException {
+        userPrefs = Preferences.userNodeForPackage(Drill.class);
+        String key = c.getSimpleName() + "Directory";
+        String parent = userPrefs.get(key, null);
+        itemFile = IO.getInputFile(parent);
+        if (itemFile == null) {
+            throw new IOException("No file loaded.");
+        }
+        load(itemFile);
+        userPrefs.put(key, itemFile.getParent());
+    }
+
+    /**
+     * Reads in the data file.
+     * @param file The file to be read.
+     * @throws IOException If the file can't be read.
+     * @throws IllegalArgumentException If there is an error in the input file.
+     */
+    void load(File file) throws IOException, IllegalArgumentException {
+        load(new BufferedReader(new FileReader(file)));
+        itemFile = file;
+    }
+
+    /**
+     * Reads in the data file. Each line should be of the form:<br><br>
+     * <b>stimulus || response</b><br>
+     * or<br>
+     * <b>stimulus || response || timesCorrect || interval || displayDate</b>
+     * or<br>
+     * <b>stimulus || response || timesCorrect || timesIncorrect || interval || displayDate</b>
+     * Blank lines and comment lines (beginning with //) are allowed and ignored.
+     * 3/26/2014 File may begin with one or more "//category" lines of statistics
+     * 
+     * @param in A reader for the file.
+     * @throws IOException If the file can't be read.
+     * @throws IllegalArgumentException If there is an error in the input file.
+     */
+    void load(BufferedReader in) throws IOException {
+        String line;
+        Time.now = 0;
+        this.clear();
+        queue.clear();
+        
+        while ((line = in.readLine()) != null) {
+            line = line.trim();
+            if (line.length() == 0) continue;
+            if (line.startsWith("//")) {
+                handlePossibleParameterLine(line);
+                continue;
+            }
+            Item item = readItem(line);
+            // Put all Items into the ArrayList
+            add(item);
+            // Put non-virgin items into the PriorityQueue
+            if (!item.isVirgin()) queue.offer(item);
+//            // Initialize Time.now to lowest displayDate of all non-virgin items
+//            if (item.getDisplayDate() < Time.now) {
+//                Time.now = item.getDisplayDate();
+//            }
+        }
+//        if (Time.now == Integer.MAX_VALUE) { // all items are virgin
+//            Time.now = 0;
+//        }
+//        else {
+//            Time.now--; // we will advance time before showing first item
+//        }
+        in.close();
+    }
+
+    /**
+     * Given a line beginning with //, handle if it is a parameter setting,
+     * or ignore it if it is just a comment. Currently the only parameter
+     * used is 'difficulty'.
+     * @param line A line beginning with "//".
+     */
+    private void handlePossibleParameterLine(String line) {
+        String[] parts = line.split("\\s+");
+        if (parts[1].equals("difficulty")) {
+            setDifficulty(new Double(parts[2]).doubleValue());
+        }
+    }
+
+    /**
+     * Returns the name of the file from which this ItemList
+     * was constructed.
+     *
+     * @return The name of the file being used.
+     */
+    String getFileName() {
+        return itemFile.getName();
+    }
+
+    /**
+     * Parses a string into an Item. Expected syntax is:<br><br>
+     * <b>stimulus || response</b><br>
+     * or<br>
+     * <b>stimulus || response || timesCorrect || timesIncorrect || interval || displayDate</b>
+     * @param line The line to be parsed.
+     * @return The parsed item.
+     * @throws IllegalArgumentException If there is an error in the input file.
+     */
+    private static Item readItem(String line) throws IllegalArgumentException {
+        String[] parts = line.split("\\s+\\|\\|\\s+");
+        if (parts.length == 2) {
+            return new Item(parts[0], parts[1]);
+        }
+        else if (parts.length == 6) {
+            int timesCorrect = Integer.parseInt(parts[2]);
+            int timesIncorrect = Integer.parseInt(parts[3]);
+            int interval = Integer.parseInt(parts[4]);
+            int date = Integer.parseInt(parts[5]);
+            return new Item(parts[0], 
+                            parts[1],
+                            timesCorrect,
+                            timesIncorrect,
+                            interval,
+                            date);
+        }
+        else {
+            throw new IllegalArgumentException("Should be 2 or 6 parts, not " +
+                                               parts.length + ":\n" + line);
+        }
+    }
+
+    /**
+     * Saves this updated ItemList back onto the same file that it was
+     * originally read from (or onto a new file, if this is a newly
+     * created ItemList).
+     * 
+     * @throws IOException If the ItemList cannot be saved on the file.
+     */
+    void save() throws IOException {
+        if (itemFile == null) {
+            saveAs();
+        }
+        else {
+            saveOnFile(itemFile);
+        }
+    }
+
+    /**
+     * Saves this updated ItemList onto a new file chosen by the user.
+     * @throws IOException If the ItemList cannot be saved on the chosen file.
+     * 
+     */
+    void saveAs() throws IOException {
+        File newFile = IO.getOutputFile();
+        saveOnFile(newFile);
+        itemFile = newFile;
+    }
+
+    /**
+     * Saves this updated ItemList.
+     * @param file The file on which to save this ItemList.
+     * @throws IOException If the ItemList cannot be saved on the given File.
+     * 
+     */
+    void saveOnFile(File file) throws IOException {
+        try {
+            PrintWriter writer = new PrintWriter(file);
+            writer.println("// difficulty " + difficulty);
+            resetItemDisplayTimes();
+            Iterator<Item> iter = iterator();
+            while (iter.hasNext()) {
+                Item item = iter.next();
+                if (item.getStimulus().equals("") || item.getResponse().equals("")) {
+                    System.err.println("Illegal item: " + item);
+                    continue;
+                }
+                writer.println(item);
+            }
+            writer.close();
+            itemFile = file;
+        }
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 
+     */
+    private void resetItemDisplayTimes() {
+        int leastDate = Integer.MAX_VALUE;
+        Iterator<Item> iter = iterator();
+        while (iter.hasNext()) {
+            Item item = iter.next();
+            if (item.getDisplayDate() < leastDate)
+                leastDate = item.getDisplayDate();
+        }
+        if (leastDate == Integer.MAX_VALUE) {
+            return; // all items must be virgin
+        }
+        iter = iterator();
+        while (iter.hasNext()) {
+            Item item = iter.next();
+            if (! item.isVirgin()) {
+                item.setDisplayDate(item.getDisplayDate() - leastDate);
+            }
+        }
+        
+    }
+
+    /**
+     * Saves this ItemList onto a new file chosen by the user, stripping it of
+     * all data regarding an individual's progress.
+     * 
+     * @throws IOException If the ItemList cannot be saved on the given File.
+     */
+    void saveAsVirgin() throws IOException {
+        File newFile = IO.getOutputFile();
+        try {
+            PrintWriter writer = new PrintWriter(newFile);
+            Iterator<Item> iter = iterator();
+            while (iter.hasNext()) {
+                Item item = iter.next();
+                writer.println(item.toVirginString());
+            }
+            writer.close();
+            virginizeList();
+            itemFile = newFile;
+        }
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Make every item on this ItemList into a virgin.
+     */
+    void virginizeList() {
+        Iterator<Item> iter = iterator();
+        while (iter.hasNext()) {
+            iter.next().setVirgin(true);
+        }
+    }
+
+    /**
+     * Gets the next item in the PriorityQueue whose appointment date has
+     * arrived, or (if all nonvirgin display dates are in the future), fill
+     * in with a virgin (if available), or just take the next item in the
+     * PriorityQueue.
+     * 3/22/2015 Added the ability to force a virgin item to be chosen.
+     * @param forceVirgin If true, choose a virgin item (if possible).
+     *
+     * @return Some Item to use.
+     */
+    Item chooseNextItemToDisplay(boolean forceVirgin) {
+        Time.now++;
+        if (!queue.isEmpty() && !forceVirgin) {
+            // Return the element at the head of the queue, if its time has come
+            int date = queue.peek().getDisplayDate();
+            if (date <= Time.now) {
+                Item nextItem = queue.poll();
+//                if (skippable(nextItem)) {
+//                    // Adjust display date and return item to queue, then try again
+//                    nextItem.setDisplayDate(date + Time.now);
+//                    put(nextItem);
+//                    return chooseNextItemToDisplay();
+//                }
+                return nextItem;
+            }
+        }
+        // If no queue element is ready, return a virgin element
+        Item virgin = getVirgin();
+        if (virgin != null) return virgin;
+        // If no virgins left, return head of queue anyway
+        return queue.poll();
+    }
+
+    /**
+     * Starting just after the position <code>from</code>, searches this ItemList
+     * forward (end-around) for a stimulus or response that matches the given
+     * regular expression <code>regex</code>.
+     * 
+     * @param startFrom The given position, after which the search is to begin.
+     * @param regex The regular expression to be matched.
+     * @return The location of the found item in this ItemList, or -1 if none found.
+     */
+    int searchForward(int startFrom, String regex) {
+        int from = startFrom;
+        Pattern p = Pattern.compile(regex);
+        for (int i = 0; i < size(); i++) {
+            from = adjust(from + 1);
+            
+            Item item = get(from);
+            Matcher stimulusMatcher = p.matcher(item.getStimulus());
+            Matcher responseMatcher = p.matcher(item.getResponse());
+            
+            if (stimulusMatcher.find() || responseMatcher.find()) {
+                return from;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Starting just before the position <code>from</code>, searches this ItemList
+     * backward (end-around) for a stimulus or response that matches the given
+     * regular expression <code>regex</code>.
+     * 
+     * @param startFrom The given position, before which the search is to begin.
+     * @param regex The regular expression to be matched.
+     * @return The location of the found item in this ItemList, or -1 if none found.
+     */
+    int searchBackward(int startFrom, String regex) {
+        int from = startFrom;
+        Pattern p = Pattern.compile(regex);
+        for (int i = 0; i < size(); i++) {
+            from = adjust(from - 1);
+            
+            Item item = get(from);
+            Matcher stimulusMatcher = p.matcher(item.getStimulus());
+            Matcher responseMatcher = p.matcher(item.getResponse());
+            
+            if (stimulusMatcher.find() || responseMatcher.find()) {
+                return from;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Given a stimulus to be added to this ItemList, search
+     * for another Item with the same stimulus.
+     *
+     * @param stimulus The stimulus of a proposed new Item.
+     * @return The location of a different item with the same stimulus,
+     * or -1 if there is no such item.
+     */
+    int searchForStimulus(String stimulus) {
+        for (int i = 0; i < size(); i++) {
+            if (stimulus.equals(get(i).getStimulus())) return i;
+        }
+        return -1; // not found
+    }
+
+    /**
+     * Search this ItemList for an item with the given response.
+     * 
+     * @param response
+     *        A possible response.
+     * @return The stimulus of an item with the given response, or null
+     *         if there is no such item.
+     */
+    String searchForResponse(String response) {
+        for (int i = 0; i < size(); i++) {
+            Set<String> responses = Item.getResponses(get(i).getResponse());
+            if (responses.contains(response)) return get(i).getStimulus();
+//            if (response.equals(get(i).getResponse())) return get(i).getStimulus();
+        }
+        return null; // not found
+    }
+
+    /**
+     * Move the Item currently at index location itemNumber in this ItemList
+     * to the index location newPosition.
+     * 
+     * @param itemNumber The position from which an Item is to be moved.
+     * @param newPosition The position to which an Item is to be moved.
+     */
+    public void moveItem(int itemNumber, int newPosition) {
+        if (itemNumber == newPosition) return;
+        Item item = remove(itemNumber);
+        add(newPosition, item);
+    }
+
+    /**
+     * Gets the first virgin in the ArrayList <code>items</code>.
+     * @return The first virgin, or <code>null</code> if none are left.
+     */
+    private Item getVirgin() {
+        for (int i = 0; i < size(); i++) {
+            if (get(i).isVirgin()) {
+                return get(i);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Puts the item back into the priority queue. If it would be at
+     * the very front of the priority queue, adjust the date to put
+     * it slightly later that the item currently at the front of the
+     * priority queue.
+     * 
+     * @param item The item to be re-inserted into the priority queue.
+     */
+    void put(Item item) {
+        Item nextItem = queue.peek();
+        if (nextItem == null) {
+            item.setDisplayDate(Time.now + 5);
+        }
+        else if (item.getDisplayDate() < nextItem.getDisplayDate()) {
+            item.setDisplayDate(nextItem.getDisplayDate() + 5);
+        }
+        queue.offer(item);
+    }
+    
+    /**
+     * Treats this ItemList as circular, by adjusting an index that
+     * is slightly out of bounds to one that is within bounds.
+     * @param index The proposed index.
+     * @return The adjusted index.
+     */
+    int adjust(int index) {
+        return (index + size()) % size();
+    }
+    
+    /**
+     * Returns the number of different items that have been presented to this
+     * user at least once.
+     * 
+     * @return A count of the number of different items seen.
+     */
+    int getNumberOfItemsSeen() {
+        int count = 0;
+        for (Item item : this) {
+            if (!item.isVirgin()) count++;
+        }
+        return count;
+    }
+    
+    /**
+     * Returns the number of items that were answered correctly the last
+     * time they were shown to this user.
+     * 
+     * @return A count of items most recently answered correctly.
+     */
+    int getNumberOfItemsCorrect() {
+        int count = 0;
+        for (Item item : this) {
+            if (item.isVirgin()) continue;
+            if (item.getTimesCorrect() > 0) count++;
+        }
+        return count;
+    }
+    
+//    /**
+//     * Returns the number of different items that have been learned by this
+//     * user. This is, of course, an estimate, as the exact number is
+//     * impossible to determine. The actual figure returned is the accumulated
+//     * probability of a correct answer times the number of items seen.
+//     * 
+//     * @return A count of the number of different items learned.
+//     */
+//    int getNumberOfItemsLearned() {
+//        int numberOfRightAnswers = 0;
+//        int numberOfWrongAnswers = 0;
+//        for (Item item : this) {
+//            numberOfRightAnswers += item.getTimesCorrect();
+//            numberOfWrongAnswers += item.getTimesIncorrect();
+//        }
+//        double numberOfAnswers = numberOfRightAnswers + numberOfWrongAnswers;
+//        double probability = numberOfRightAnswers / numberOfAnswers;
+//        return (int)(probability * getNumberOfItemsSeen());
+//    }
+    
+    /**
+     * Returns the number of different items that have been learned by this
+     * user. This is, of course, an estimate, as the exact number is
+     * impossible to determine. The actual figure returned is the sum of
+     * a measure for each item (0.1 times the level, for levels up to 10).
+     * 
+     * @return An estimate of the number of different items learned.
+     */
+    double getNumberOfItemsLearned() {
+        double itemsLearned = 0.0;
+        for (Item item : this) {
+            int level = item.getTimesCorrect() - item.getTimesIncorrect();
+            if (level > 0) itemsLearned += 0.1 * Math.min(level, 10);
+        }
+        return itemsLearned;
+    }
+    
+    /**
+     * Change the difficulty level. This involves updating every item in
+     * the queue with a new interval and new display date.
+     * </ul>
+     * @param newDifficulty 2.0 is very easy, 4.0 is very hard.
+     */
+    void setDifficulty(double newDifficulty) {
+        // If no change, do nothing
+        if (Math.abs(newDifficulty - difficulty) < 0.01) return;
+        // Reschedule all items into a new priority queue
+        PriorityQueue<Item> newQueue = new PriorityQueue<Item>();
+        for (Item item : queue) {
+            if (!item.isVirgin()) {
+                int oldInterval = item.getInterval();
+                int oldDisplayDate = item.getDisplayDate();
+                int itemLevel = item.getLevel();
+                int newInterval = intervalForLevel(itemLevel, newDifficulty);
+                int newDisplayDate = oldDisplayDate - oldInterval + newInterval; // ok if negative
+                item.setInterval(newInterval);
+                item.setDisplayDate(newDisplayDate);
+            }
+            newQueue.add(item);
+        }
+        difficulty = newDifficulty;
+        queue = newQueue;
+    }
+
+    /**
+     * Determines the display level for an item.
+     * @param itemLevel The number of (correct - incorrect) for the item.
+     * @param newDifficulty The provided difficulty level.
+     * @return The desired interval, as an exponential function of the difficulty.
+     */
+    static int intervalForLevel(int itemLevel, double newDifficulty) {
+        return Math.max(2, (int)(Math.pow(newDifficulty, itemLevel)));
+    }
+
+    /**
+     * For debugging purposes only.
+     */
+    void print() {
+        System.out.println("ArrayList:");
+            for (int i = 0; i < size(); i++) {
+            System.out.println("    " + get(i));
+        }
+    }
+
+    /**
+     * For debugging purposes only.
+     */
+    void printQueue() {
+        System.out.println("PriorityQueue at time " + Time.now + ":");
+        Iterator<Item> iter = queue.iterator();
+        while (iter.hasNext()) {
+            Item item = iter.next();
+            System.out.println("    " + item);
+        }
+        System.out.println();
+    }
+}
