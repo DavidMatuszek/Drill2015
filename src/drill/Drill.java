@@ -308,6 +308,8 @@ public class Drill extends JFrame {
         itemsLearned = itemList.getNumberOfItemsLearned();
         if (currentItem.isVirgin()) {
             messageString = " New item";
+        } else if (currentItem.getTimesCorrect() - currentItem.getTimesIncorrect() >= 10) {
+            messageString = " Review item";
         } else {
             String learned = String.format("%3.1f", itemsLearned);
             messageString = " Learned " + learned + " of " + itemsSeen + " items.";
