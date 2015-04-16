@@ -563,7 +563,7 @@ public class Build extends JFrame {
         itemNumberField.setText((itemNumber + 1) + "");
         timesCorrectField.setText("0");
         timesIncorrectField.setText("0");
-        intervalField.setText(list.intervalForLevel(0, list.difficulty) + "");
+        intervalField.setText(ItemList.intervalForLevel(0, ItemList.difficulty) + "");
         setDate(Integer.MAX_VALUE);
         stimulusField.requestFocus();
     }
