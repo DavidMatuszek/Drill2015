@@ -266,8 +266,7 @@ public class Drill extends JFrame {
             }
             else {
                 // Still getting it wrong
-                responseField.selectAll();
-                displayMessage(currentItem.getResponse(), " ");
+                possiblyDisplayMatchingStimulus(usersResponse);
                 responseField.selectAll();
             }
         }
