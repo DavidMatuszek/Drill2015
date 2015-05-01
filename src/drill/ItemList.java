@@ -434,7 +434,7 @@ public class ItemList extends ArrayList<Item> {
      */
     String searchForResponse(String response) {
         for (int i = 0; i < size(); i++) {
-            Set<String> responses = Item.getResponses(get(i).getResponse());
+            Set<String> responses = Item.getParts(get(i).getResponse());
             if (responses.contains(response)) return get(i).getStimulus();
 //            if (response.equals(get(i).getResponse())) return get(i).getStimulus();
         }

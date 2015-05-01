@@ -502,11 +502,12 @@ public class Item implements Comparable<Item> {
     
     /**
      * Given a string consisting of one or more substrings separated by
-     * semicolons, return a set of those substrings.
+     * semicolons, return a set of those substrings, with parenthesized
+     * groups removed.
      * @param response The input string, possibly with more than one part.
      * @return A set of the parts.
      */
-    public static Set<String> getResponses(String response) {
+    public static Set<String> getParts(String response) {
         return breakIntoAlternatives(removeParenthesizedGroups(response), " *; *");
     }
     

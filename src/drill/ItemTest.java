@@ -322,19 +322,19 @@ public class ItemTest {
     }
     
     @Test
-    public final void testGetResponses() {
+    public final void testGetParts() {
         Set<String> set = new HashSet<String>();
         set.add("foo");
-        assertEquals(set, Item.getResponses("foo"));
+        assertEquals(set, Item.getParts("foo"));
         set.add("bar");
-        assertEquals(set, Item.getResponses("foo; bar"));
+        assertEquals(set, Item.getParts("foo; bar"));
         set.add("baz");
-        assertEquals(set, Item.getResponses(" baz ; foo; bar"));
+        assertEquals(set, Item.getParts(" baz ; foo; bar"));
         set.add("one two three");
-        assertEquals(set, Item.getResponses(" baz ; foo; bar; one two three"));
+        assertEquals(set, Item.getParts(" baz ; foo; bar; one two three"));
         set.clear();
         set.add("foo");
-        assertEquals(set, Item.getResponses(" foo "));
+        assertEquals(set, Item.getParts(" foo "));
     }
     
     @Test
