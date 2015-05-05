@@ -45,15 +45,15 @@ public class Drill extends JFrame {
     private JMenuBar menuBar = new JMenuBar();
 
     private JMenu fileMenu = new JMenu("File");
-    private JMenuItem loadMenuItem = menuItem("Load...", KeyEvent.VK_O);
-    private JMenuItem saveMenuItem = menuItem("Save", KeyEvent.VK_S);
-    private JMenuItem saveAsMenuItem = new JMenuItem("Save As...");
-    private JMenuItem quitMenuItem = menuItem("Quit", KeyEvent.VK_Q);
+    private JMenuItem loadMenuItem = menuItem("Open...", KeyEvent.VK_O, false);
+    private JMenuItem saveMenuItem = menuItem("Save", KeyEvent.VK_S, false);
+    private JMenuItem saveAsMenuItem = menuItem("Save As...", KeyEvent.VK_S, true);
+    private JMenuItem quitMenuItem = menuItem("Quit", KeyEvent.VK_Q, false);
 
     private JMenu specialMenu = new JMenu("Special");
     private JMenuItem dontScoreMenuItem = new JMenuItem("Don't score");
     private JMenuItem fixItemMenuItem = new JMenuItem("Fix item...");
-    private JMenuItem typoMenuItem = menuItem("Typo", KeyEvent.VK_T);
+    private JMenuItem typoMenuItem = menuItem("Typo", KeyEvent.VK_T, false);
     private JMenuItem fontSizeItem = new JMenuItem("Font size...");
 
     private JMenu difficultyMenu = new JMenu("Difficulty");
@@ -201,9 +201,10 @@ public class Drill extends JFrame {
      * @param key The accelerator (shortcut) key to use.
      * @return The complete menu item.
      */
-    private static JMenuItem menuItem(String words, int key) {
+    private static JMenuItem menuItem(String words, int key, boolean shifted) {
         JMenuItem menuItem = new JMenuItem(words);
-        int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+        int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(); // control
+        if (shifted) mask |= java.awt.event.InputEvent.SHIFT_DOWN_MASK;
         menuItem.setAccelerator(KeyStroke.getKeyStroke(key, mask));
         return menuItem;
     }

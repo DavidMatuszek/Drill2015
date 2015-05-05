@@ -5,8 +5,10 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Label;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -20,6 +22,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 
 
@@ -30,12 +33,13 @@ public class Build extends JFrame {
     // Menus
     private JMenuBar menuBar = new JMenuBar();
     private JMenu fileMenu = new JMenu("File");
-    private JMenuItem newMenuItem = new JMenuItem("New...");
-    private JMenuItem loadMenuItem = new JMenuItem("Load...");
-    private JMenuItem saveMenuItem = new JMenuItem("Save");
-    private JMenuItem saveAsMenuItem = new JMenuItem("Save As...");
+    private JMenuItem newMenuItem = menuItem("New...", KeyEvent.VK_N, false);
+    private JMenuItem loadMenuItem = menuItem("Open...", KeyEvent.VK_O, false);
+    private JMenuItem saveMenuItem = menuItem("Save", KeyEvent.VK_S, false);
+    private JMenuItem saveAsMenuItem = menuItem("Save As...", KeyEvent.VK_S, true);
+   
     private JMenuItem saveAsVirginMenuItem = new JMenuItem("Save As Virgin...");
-    private JMenuItem quitMenuItem = new JMenuItem("Save And Quit");
+    private JMenuItem quitMenuItem = menuItem("Save And Quit", KeyEvent.VK_Q, false);
     private JMenu helpMenu = new JMenu("Help");
     private JMenuItem helpMenuItem = new JMenuItem("Help");
     // Text fields
@@ -231,6 +235,7 @@ public class Build extends JFrame {
         saveMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (e.getModifiers() == 00 ) {System.out.println("Shifted!");}
                 save();
             }
         });
@@ -295,6 +300,23 @@ public class Build extends JFrame {
         });
     }
 
+    /**
+     * Returns a menu item whose text and accelerator keys do not
+     * depend on which operating system is being used. If no
+     * accelerator key is desired, use zero for that parameter.
+     *
+     * @param words The menu text to use.
+     * @param key The accelerator (shortcut) key to use.
+     * @return The complete menu item.
+     */
+    private static JMenuItem menuItem(String words, int key, boolean shifted) {
+        JMenuItem menuItem = new JMenuItem(words);
+        int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(); // control
+        if (shifted) mask |= java.awt.event.InputEvent.SHIFT_DOWN_MASK;
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(key, mask));
+        return menuItem;
+    }
+    
     /**
      * Creates the panel containing the "search" field.
      * 
