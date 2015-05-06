@@ -42,6 +42,7 @@ public class Build extends JFrame {
     private JMenuItem quitMenuItem = menuItem("Save And Quit", KeyEvent.VK_Q, false);
     private JMenu helpMenu = new JMenu("Help");
     private JMenuItem helpMenuItem = new JMenuItem("Help");
+    private JMenuItem revertMenuItem = menuItem("Revert", KeyEvent.VK_Z, false);
     // Text fields
     private JTextField searchField = new JTextField(20);
     private JTextField stimulusField = new JTextField(30);
@@ -129,6 +130,7 @@ public class Build extends JFrame {
         fileMenu.add(quitMenuItem);
         menuBar.add(helpMenu);
         helpMenu.add(helpMenuItem);
+        helpMenu.add(revertMenuItem);
     }
 
     /**
@@ -298,6 +300,15 @@ public class Build extends JFrame {
                 JOptionPane.showMessageDialog(gui, message);  
             }            
         });
+        // Revert
+        revertMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                stimulusField.setText(item.getStimulus());
+                responseField.setText(item.getResponse());
+            }
+            
+        });
     }
 
     /**
@@ -307,6 +318,7 @@ public class Build extends JFrame {
      *
      * @param words The menu text to use.
      * @param key The accelerator (shortcut) key to use.
+     * @param shifted <code>true</code> if the shift key should be held down.
      * @return The complete menu item.
      */
     private static JMenuItem menuItem(String words, int key, boolean shifted) {
