@@ -453,7 +453,7 @@ public class Item implements Comparable<Item> {
         // are very similar to the user's responses
         for (String found : usersResponses) {
             for (String expected : legalResponses) {
-                if (similarity(found, expected) > 0.85) {
+                if (!found.equals(expected) && similarity(found, expected) > 0.85) {
                     return askIfUserMeantThis(found, expected);
                 }
             }
