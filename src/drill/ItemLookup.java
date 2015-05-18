@@ -10,13 +10,17 @@ import java.util.Set;
  * This class provides a lookup capability for finding all the items containing
  * a given stimulus or a given response.
  * 
+ * So far, duplicate responses to items are allowed, but duplicate stimuli are
+ * not. This means that Drill can reasonably proceed in only one direction. The
+ * purpose of this class is to make it possible to relax that restriction.
+ * 
  * @author David Matuszek
  */
 public class ItemLookup {
     final int INTIIAL_SIZE = 2500;
     
-    private HashMap<String, ArrayList<Item>> itemsContainingStimulus;
-    private HashMap<String, ArrayList<Item>> itemsContainingResponse;
+    protected HashMap<String, ArrayList<Item>> itemsContainingStimulus;
+    protected HashMap<String, ArrayList<Item>> itemsContainingResponse;
 
     /**
      * Constructor.
@@ -70,7 +74,8 @@ public class ItemLookup {
     public Set<String> extractResponsesFrom(List<Item> items) {
         Set<String> responses = new HashSet<String>(2);
         for (Item item : items) {
-            responses.add(item.getResponse());
+            Set<String> parts = Item.getParts(item.getResponse());
+            responses.addAll(parts);
         }
         return responses;
     }
@@ -78,7 +83,8 @@ public class ItemLookup {
     public Set<String> extractStimuliFrom(List<Item> items) {
         Set<String> stimuli = new HashSet<String>(2);
         for (Item item : items) {
-            stimuli.add(item.getStimulus());
+            Set<String> parts = Item.getParts(item.getStimulus());
+            stimuli.addAll(parts);
         }
         return stimuli;
     }
