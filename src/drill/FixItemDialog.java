@@ -53,6 +53,7 @@ public class FixItemDialog extends JDialog {
         okButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String stimulus = stimulusField.getText().trim();
+                item.setStimulus("CURRENT " + stimulus);
                 int stimulusIndex = itemList.searchForStimulus(stimulus);
                 if (stimulusIndex < 0) {
                     item.setStimulus(stimulus);
@@ -65,7 +66,7 @@ public class FixItemDialog extends JDialog {
                         stimulus +
                         "\nis already in use, with the response\n" +
                         itemList.get(stimulusIndex).getResponse());
-                                                  
+                        item.setStimulus(stimulus);                          
                                                   
                 }                
             }            
