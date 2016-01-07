@@ -61,13 +61,13 @@ public class FixItemDialog extends JDialog {
                     item.setResponse(response);
                     setVisible(false);
                 } else {
+                    item.setStimulus(stimulus);                       
                     JOptionPane.showMessageDialog(frame,
-                        "Cannot change because the stimulus\n" +
-                        stimulus +
-                        "\nis already in use, with the response\n" +
-                        itemList.get(stimulusIndex).getResponse());
-                        item.setStimulus(stimulus);                          
-                                                  
+                         "Cannot change because the stimulus\n" +
+                         stimulus +
+                         "\nis already in use, with the response\n" +
+                         itemList.get(stimulusIndex).getResponse());   
+
                 }                
             }            
         });
