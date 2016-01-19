@@ -324,7 +324,7 @@ public class Item implements Comparable<Item> {
      */
     public void demote() {
         timesIncorrect += 1;
-        interval = getNewInterval(false);;
+        interval = getNewInterval(false);
         displayDate = Time.now + interval;
     }
     
@@ -335,6 +335,13 @@ public class Item implements Comparable<Item> {
      */
     int getNewInterval(boolean correct) {
         int level = timesCorrect - timesIncorrect;
+        
+        // The following is a modification to temporarily reduce the level of
+        // "learnedness" of an item. This is an attempt to reduce the problem
+        // of getting a large number of items incorrect after not having used
+        // the program for a few days.
+        if (!correct) level = Math.max(level - 2, 1);
+        
         return ItemList.intervalForLevel(level, ItemList.getDifficulty());
     }
     /**
