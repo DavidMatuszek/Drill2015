@@ -32,7 +32,13 @@ import javax.swing.JFileChooser;
  * @author David Matuszek
  * @version Jan 3, 2007
  */
-public class IO {
+public class IO implements Runnable {
+
+    @Override
+    public void run() {
+        // TODO Auto-generated method stub
+        
+    }
 
     /**
      * Returns an input File chosen by the user, or <code>null</code> if
