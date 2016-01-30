@@ -37,6 +37,9 @@ public class Item implements Comparable<Item> {
     /** Number of wrong responses */
     private int timesIncorrect;
     
+    /** Length of current sequence of correct responses */
+    private int consecutiveTimesCorrect; 
+    
     /** The ideal amount of time between presentations */
     private int interval;
     
@@ -52,10 +55,12 @@ public class Item implements Comparable<Item> {
      */
     public Item(String stimulus, String response) {
         // Maximum display date indicates this is virgin
-        this(stimulus, response, 0, 0, minInterval, Integer.MAX_VALUE);
+        this(stimulus, response, 0, 0, 0, minInterval, Integer.MAX_VALUE);
     }
+    
     /**
      * Construct an Item with the given fields.
+     * Used for older files with no "consecutiveTimesCorrect" field.
      * 
      * @param stimulus The stimulus.
      * @param response The response.
@@ -68,12 +73,32 @@ public class Item implements Comparable<Item> {
     public Item(String stimulus, String response,
                 int timesCorrect, int timesIncorrect,
                 int interval, int displayDate) {
-        testValidity(stimulus, response, timesCorrect, timesIncorrect,
+        this(stimulus, response,  timesCorrect, timesIncorrect, 0, interval, displayDate);
+    }
+    
+    /**
+     * Construct an Item with the given fields.
+     * 
+     * @param stimulus The stimulus.
+     * @param response The response.
+     * @param timesCorrect Number of correct answers.
+     * @param timesIncorrect Number of incorrect answers.
+     * @param consecutiveTimesCorrect Length of current sequence of correct responses
+     * @param interval How long it should be between presentations of this Item.
+     * @param displayDate The next date this Item should be displayed.
+     * @throws IllegalArgumentException if any parameter is invalid.
+     */
+    public Item(String stimulus, String response,
+                int timesCorrect, int timesIncorrect, int consecutiveTimesCorrect,
+                int interval, int displayDate) {
+        testValidity(stimulus, response,
+                     timesCorrect, timesIncorrect, consecutiveTimesCorrect, 
                      interval, displayDate);
         this.setStimulus(stimulus);
         this.setResponse(response);
         this.timesCorrect = timesCorrect;
         this.timesIncorrect = timesIncorrect;
+        this.consecutiveTimesCorrect = consecutiveTimesCorrect;
         this.interval = interval;
         this.displayDate = displayDate;
     }
@@ -157,12 +182,24 @@ public class Item implements Comparable<Item> {
     }
     
     /**
+     * If this item has never been responded to, or if the most recent response
+     * was incorrect, then return zero; but if the most recent response was
+     * correct, return a count of the number of consecutive correct responses
+     * including the most recent response.
+     * @return The consecutive times correct.
+     */
+    public int getConsecutiveTimesCorrect() {
+        return consecutiveTimesCorrect;
+    }
+    
+    /**
      * Returns a measure of how well this item is learned, currently defined
      * as simply times correct - times incorrect.
-     * @return
+     * 1-23-2016 Changed the level to equal consecutiveTimesCorrect.
+     * @return The "learned level" of this Item.
      */
     public int getLevel() {
-        return timesCorrect - timesIncorrect;
+        return getConsecutiveTimesCorrect();
     }
     /**
      * @return the interval
@@ -229,6 +266,7 @@ public class Item implements Comparable<Item> {
      * @param newResponse The response.
      * @param newTimesCorrect Number of correct responses.
      * @param newTimesIncorrect Number of incorrect responses.
+     * @param newConsecutiveTimesCorrect Length of current sequence of correct responses.
      * @param newInterval How long it should be between presentations of this Item.
      * @param newDisplayDate The next date this Item should be displayed.
      * @throws IllegalArgumentException if any parameter is invalid.
@@ -238,14 +276,17 @@ public class Item implements Comparable<Item> {
                           String newResponse,
                           int newTimesCorrect,
                           int newTimesIncorrect,
+                          int newConsecutiveTimesCorrect,
                           int newInterval,
                           int newDisplayDate) {
         testValidity(newStimulus, newResponse, newTimesCorrect,
+                     newConsecutiveTimesCorrect, 
                      newTimesIncorrect, newInterval, newDisplayDate);
         if (newStimulus.equals(this.stimulus.trim())
                 && newResponse.equals(this.response.trim())
                 && newTimesCorrect == this.timesCorrect
                 && newTimesIncorrect == this.timesIncorrect
+                && newConsecutiveTimesCorrect == this.consecutiveTimesCorrect
                 && newInterval == this.interval
                 && newDisplayDate == this.displayDate) {
             return false;
@@ -254,9 +295,25 @@ public class Item implements Comparable<Item> {
         this.setResponse(newResponse);
         this.timesCorrect = newTimesCorrect;
         this.timesIncorrect = newTimesIncorrect;
+        this.consecutiveTimesCorrect = newConsecutiveTimesCorrect;
         this.interval = newInterval;
         this.displayDate = newDisplayDate;
         return true;
+    }
+    
+    /**
+     * Old version, without consecutiveTimesCorrect.
+     */
+    public boolean modify(String newStimulus,
+                          String newResponse,
+                          int newTimesCorrect,
+                          int newTimesIncorrect,
+                          int newInterval,
+                          int newDisplayDate) {
+        return modify(newStimulus, newResponse,
+                      newTimesCorrect, newTimesIncorrect,
+                      this.getConsecutiveTimesCorrect(), // leave unchanged
+               newInterval, newDisplayDate);
     }
     
     /**
@@ -272,6 +329,7 @@ public class Item implements Comparable<Item> {
      */
     static void testValidity(String newStimulus, String newResponse,
                       int newTimesCorrect, int newTimesIncorrect,
+                      int newConsecutiveTimesCorrect,
                       int newInterval, int newDisplayDate) {
         errorIf(newStimulus.trim().length() == 0,
                 "Stimulus field may not be blank.", newStimulus);
@@ -281,6 +339,8 @@ public class Item implements Comparable<Item> {
                 "\"Times correct\" may not be negative.", newStimulus);
         errorIf(newTimesIncorrect < 0,
                 "\"Times incorrect\" may not be negative.", newStimulus);
+        errorIf(newConsecutiveTimesCorrect < 0,
+                "\"Consecutive times correct\" may not be negative.", newStimulus);
         errorIf(newInterval < minInterval,
                 "\"Interval\" must be at least " + minInterval + ".", newStimulus);
         errorIf(newDisplayDate < 0,
@@ -314,6 +374,7 @@ public class Item implements Comparable<Item> {
     public void promote() {
         timesCorrect = isVirgin() ? ItemList.virginPromotion
                                   : timesCorrect + 1;
+        consecutiveTimesCorrect += 1;
         interval = getNewInterval(true);
         displayDate = Time.now + interval;
     }
@@ -324,6 +385,7 @@ public class Item implements Comparable<Item> {
      */
     public void demote() {
         timesIncorrect += 1;
+        consecutiveTimesCorrect = 0;
         interval = getNewInterval(false);
         displayDate = Time.now + interval;
     }
@@ -347,7 +409,7 @@ public class Item implements Comparable<Item> {
     /**
      * Returns the String representation of this item that is used
      * for the student data file. The form is:<br>
-     * <code>stimulus || response || times correct || interval || date</code>
+     * <code>stimulus || response || times correct || consecutiveTimesCorrect || interval || date</code>
      * 
      * @return The String representation used in student data files.
      * @see java.lang.Object#toString()
@@ -360,6 +422,7 @@ public class Item implements Comparable<Item> {
         }
         return stimulus + sep + response + sep +
         timesCorrect + sep + timesIncorrect + sep +
+        consecutiveTimesCorrect + sep +
         interval + sep + displayDate;
     }
 

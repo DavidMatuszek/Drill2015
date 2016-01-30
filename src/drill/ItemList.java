@@ -196,17 +196,34 @@ public class ItemList extends ArrayList<Item> {
         else if (parts.length == 6) {
             int timesCorrect = Integer.parseInt(parts[2]);
             int timesIncorrect = Integer.parseInt(parts[3]);
+            int level = timesCorrect - timesIncorrect;
+            if (level < 0) level = 0;
             int interval = Integer.parseInt(parts[4]);
             int date = Integer.parseInt(parts[5]);
             return new Item(parts[0], 
                             parts[1],
                             timesCorrect,
                             timesIncorrect,
+                            level,
+                            interval,
+                            date);
+        }
+        else if (parts.length == 7) {
+            int timesCorrect = Integer.parseInt(parts[2]);
+            int timesIncorrect = Integer.parseInt(parts[3]);
+            int consecutiveTimesCorrect = Integer.parseInt(parts[4]);
+            int interval = Integer.parseInt(parts[5]);
+            int date = Integer.parseInt(parts[6]);
+            return new Item(parts[0], 
+                            parts[1],
+                            timesCorrect,
+                            timesIncorrect,
+                            consecutiveTimesCorrect,
                             interval,
                             date);
         }
         else {
-            throw new IllegalArgumentException("Should be 2 or 6 parts, not " +
+            throw new IllegalArgumentException("Should be 2, 6, or 7 parts, not " +
                                                parts.length + ":\n" + line);
         }
     }

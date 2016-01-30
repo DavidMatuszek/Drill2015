@@ -472,6 +472,7 @@ public class Build extends JFrame {
 
     /**
      * Updates the ItemList from the display.
+     * TODO Add consecutiveTimesCorrect to the display; it isn't there yet.
      * <ul>
      *   <li>If the currently displayed item is new and valid, it is
      *       added to the ItemList.</li>
