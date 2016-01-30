@@ -20,7 +20,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
@@ -74,12 +73,16 @@ public class Drill extends JFrame {
     private Font mainFont = new Font("Serif", Font.PLAIN, mainFontSize);
     private Font messageFont = new Font("SansSerif", Font.PLAIN, messageFontSize);
 
+    /** This Drill object; public so it can be used in Listeners. */
     public static Drill thisGui;
-    public ItemList itemList; // public in order to use TestUTF_8 to check umlauts
+    
+    /** ItemList being used; public in order to use TestUTF_8 to check umlauts. */
+    public ItemList itemList;
+    
     private boolean isDirty;
     private transient Item currentItem;
-    private transient String previousStimulus;
-    private transient String previousResponse;
+//    private transient String previousStimulus;
+//    private transient String previousResponse;
     private boolean firstTry;
     private int numberCorrect = 0;
     private int numberIncorrect = 0;
@@ -200,6 +203,7 @@ public class Drill extends JFrame {
      *
      * @param words The menu text to use.
      * @param key The accelerator (shortcut) key to use.
+     * @param shifted true if shift key is down.
      * @return The complete menu item.
      */
     private static JMenuItem menuItem(String words, int key, boolean shifted) {
@@ -289,8 +293,8 @@ public class Drill extends JFrame {
     }
 
     private void getNextItem() {
-        previousStimulus = currentItem.getStimulus();
-        previousResponse = currentItem.getResponse();
+//        previousStimulus = currentItem.getStimulus();
+//        previousResponse = currentItem.getResponse();
         if (itemsInARowCorrect == 10) {
             displayNewItem(itemList.chooseNextItemToDisplay(true));
             itemsInARowCorrect = 0;
@@ -312,7 +316,7 @@ public class Drill extends JFrame {
         } else if (currentItem.getTimesCorrect() - currentItem.getTimesIncorrect() >= 10) {
             messageString = " Review item";
         } else {
-            String learned = String.format("%3.1f", itemsLearned);
+            String learned = String.format("%3.1f", new Double(itemsLearned));
             messageString = " Learned " + learned + " of " + itemsSeen + " items.";
         }
         numberOfTrialsLabel.setText(messageString);
@@ -322,11 +326,11 @@ public class Drill extends JFrame {
         percentLabel.setText(messageString);
     }
 
-    private void displayPreviousItemInMessageArea() {
-        int numberOfTrials = numberCorrect + numberIncorrect;
-        if (numberOfTrials <= 0) return;
-        displayMessage(previousStimulus, previousResponse);
-    }
+//    private void displayPreviousItemInMessageArea() {
+//        int numberOfTrials = numberCorrect + numberIncorrect;
+//        if (numberOfTrials <= 0) return;
+//        displayMessage(previousStimulus, previousResponse);
+//    }
 
     private void possiblyDisplayMatchingStimulus(String usersResponse) {
         String foundStimulus = itemList.searchForResponse(usersResponse);
@@ -393,7 +397,7 @@ public class Drill extends JFrame {
         fixItemMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new FixItemDialog(thisGui, itemList, currentItem);
+                new FixItemDialog(thisGui, itemList, currentItem).showDialog();
                 stimulusField.setText(currentItem.getStimulus());
                 correctResponseField.setText(currentItem.getResponse());
 
@@ -464,7 +468,7 @@ public class Drill extends JFrame {
         });
     }
     
-    private boolean almostEqual(double d1, double d2) {
+    private static boolean almostEqual(double d1, double d2) {
         return Math.abs(d1 - d2) < 0.001;
     }
     
@@ -480,6 +484,9 @@ public class Drill extends JFrame {
 
     // -----------------------------------------------------------
 
+    /**
+     *  Causes current item to not be scored, either correct or incorrect.
+     */
     protected void dontScore() {
         correctResponseField.setBackground(Color.WHITE);
         correctResponseField.setText("");
@@ -487,11 +494,14 @@ public class Drill extends JFrame {
         firstTry = true;
     }
 
+    /**
+     * Load new ItemList.
+     */
     public void load() {
         try {
             itemList = new ItemList();
             itemList.load(Drill.class);
-            setDifficultyRadioButtons(itemList.getDifficulty());
+            setDifficultyRadioButtons(ItemList.getDifficulty());
             setTitle(itemList.getFileName() + "    (" + itemList.size() + " items)");
             isDirty = false;
             numberIncorrect = 0;
@@ -509,6 +519,9 @@ public class Drill extends JFrame {
         }
     }
 
+    /**
+     * Saves the ItemList; if it fails, allow another attempt.
+     */
     protected void save() {
         try {
             itemList.save();
@@ -521,14 +534,20 @@ public class Drill extends JFrame {
         }
     }
 
+    /**
+     * Saves the ItemList; may fail silently.
+     */
     protected void saveIfPossible() {
         try {
             itemList.save();
         }
-        catch (Exception e) {
+        catch (Exception e) { // do nothing
         }
     }
 
+    /**
+     * Saves the ItemList on a new file.
+     */
     protected void saveAs() {
         try {
             itemList.saveAs();
@@ -554,11 +573,17 @@ public class Drill extends JFrame {
         return (retry == JOptionPane.YES_OPTION);
     }
 
+    /**
+     * Makes sure ItemList is saved before quitting; no longer needed.
+     */
     void quitSafely() {
         if (cancelQuitting()) return;
         quit();
     }
 
+    /**
+     * Just quit.
+     */
     protected void quit() {
         dispose();
     }
@@ -590,8 +615,8 @@ public class Drill extends JFrame {
             if (size < 8 || size > 36) throw new NumberFormatException(newSize);
             mainFontSize = size;
             messageFontSize = Math.max(size - 6, 8);
-            Font mainFont = new Font("Serif", Font.PLAIN, mainFontSize);
-            Font messageFont = new Font("SansSerif", Font.PLAIN, messageFontSize);
+            mainFont = new Font("Serif", Font.PLAIN, mainFontSize);
+            messageFont = new Font("SansSerif", Font.PLAIN, messageFontSize);
             stimulusField.setFont(mainFont);
             responseField.setFont(mainFont);
             correctResponseField.setFont(mainFont);
@@ -606,7 +631,11 @@ public class Drill extends JFrame {
         }
     }
     
-    private String helpMessage() {
+    /**
+     * Tells how to use this Drill program.
+     * @return Instructions.
+     */
+    private static String helpMessage() {
         return
             "Semicolons (;) separate alternatives; you may respond with any one,\n" +
             "or any combination (separated by semicolons), in any order.\n" +
@@ -654,6 +683,7 @@ public class Drill extends JFrame {
     }
 
     private class Closer implements Runnable {
+        @Override
         public void run() {
             if (isDirty) saveIfPossible();
         }

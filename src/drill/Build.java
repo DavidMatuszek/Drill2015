@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.Label;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,7 +22,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
 
 
@@ -473,7 +471,6 @@ public class Build extends JFrame {
 
     /**
      * Updates the ItemList from the display.
-     * TODO Add consecutiveTimesCorrect to the display; it isn't there yet.
      * <ul>
      *   <li>If the currently displayed item is new and valid, it is
      *       added to the ItemList.</li>

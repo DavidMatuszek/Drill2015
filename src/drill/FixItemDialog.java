@@ -18,6 +18,7 @@ import javax.swing.JTextField;
  * @version Mar 26, 2007
  */
 public class FixItemDialog extends JDialog {
+    private Frame frame;
     private JTextField stimulusField = new JTextField(40);
     private JTextField responseField = new JTextField(40);
     
@@ -28,6 +29,7 @@ public class FixItemDialog extends JDialog {
     
     FixItemDialog(final Frame frame, final ItemList itemList, Item itemToBeChanged) {
         super(frame, true);
+        this.frame = frame;
         item = itemToBeChanged;
         setLayout(new GridLayout(3, 1));
         
@@ -77,8 +79,12 @@ public class FixItemDialog extends JDialog {
                 setVisible(false);
             }            
         });
+    }
+    
+    void showDialog() {
         pack();
         this.setLocationRelativeTo(frame);
         setVisible(true);
+        
     }
 }
