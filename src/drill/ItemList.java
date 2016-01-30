@@ -566,15 +566,23 @@ public class ItemList extends ArrayList<Item> {
      * Returns the number of different items that have been learned by this
      * user. This is, of course, an estimate, as the exact number is
      * impossible to determine. The actual figure returned is the sum of
-     * a measure for each item (0.1 times the level, for levels up to 10).
+     * a measure for each item.
      * 
      * @return An estimate of the number of different items learned.
      */
     double getNumberOfItemsLearned() {
         double itemsLearned = 0.0;
         for (Item item : this) {
-            int level = item.getTimesCorrect() - item.getTimesIncorrect();
-            if (level > 0) itemsLearned += 0.1 * Math.min(level, 10);
+            int level = item.getConsecutiveTimesCorrect();
+            switch(level) {
+                case 0: break;
+                case 1: itemsLearned += 0.1; break;
+                case 2: itemsLearned += 0.3; break;
+                case 3: itemsLearned += 0.5; break;
+                case 4: itemsLearned += 0.8; break;
+                case 5: itemsLearned += 1.0; break;
+                default: itemsLearned += (level < 0 ? 0.0 : 1.0); break;
+            }
         }
         return itemsLearned;
     }

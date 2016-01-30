@@ -73,7 +73,9 @@ public class Item implements Comparable<Item> {
     public Item(String stimulus, String response,
                 int timesCorrect, int timesIncorrect,
                 int interval, int displayDate) {
-        this(stimulus, response,  timesCorrect, timesIncorrect, 0, interval, displayDate);
+        this(stimulus, response,  timesCorrect, timesIncorrect,
+             Math.max(0,  timesCorrect - 2 * timesIncorrect), // Guess an appropriate value for "consecutiveTimesCorrect" 
+             interval, displayDate);
     }
     
     /**
@@ -312,7 +314,7 @@ public class Item implements Comparable<Item> {
                           int newDisplayDate) {
         return modify(newStimulus, newResponse,
                       newTimesCorrect, newTimesIncorrect,
-                      this.getConsecutiveTimesCorrect(), // leave unchanged
+                      consecutiveTimesCorrect, // Used by editor; leave unchanged
                newInterval, newDisplayDate);
     }
     

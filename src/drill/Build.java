@@ -50,6 +50,7 @@ public class Build extends JFrame {
     private JTextField responseField = new JTextField(30);
     private JTextField timesCorrectField = new JTextField(6);
     private JTextField timesIncorrectField = new JTextField(6);
+    private JTextField consecutiveTimesCorrectField = new JTextField(4);
     private JTextField intervalField = new JTextField(6);
     private JTextField displayDateField = new JTextField(6);
     private JTextField itemNumberField = new JTextField(6);
@@ -386,7 +387,7 @@ public class Build extends JFrame {
         intervalField.setEditable(false);
 
         statisticsPanel.add(makePanel("Times correct:", timesCorrectField));
-        statisticsPanel.add(new Label(""));
+        statisticsPanel.add(makePanel("Consecutive correct:", consecutiveTimesCorrectField)); // was a blank JLabel
         statisticsPanel.add(makePanel("Display date:", displayDateField));
         statisticsPanel.add(makePanel("Times incorrect:", timesIncorrectField));
 
@@ -494,6 +495,7 @@ public class Build extends JFrame {
                                        responseField.getText(),
                                        getInt(timesCorrectField, "Times correct"),
                                        getInt(timesIncorrectField, "Times incorrect"),
+                                       getInt(consecutiveTimesCorrectField, "Consecutive correct"),
                                        getInt(intervalField, "Interval"),
                                        getDate());
             itemNumber = getInt(itemNumberField, "Item number") - 1;
@@ -507,6 +509,7 @@ public class Build extends JFrame {
                                           responseField.getText(),
                                           getInt(timesCorrectField, "Times correct"),
                                           getInt(timesIncorrectField, "Times incorrect"),
+                                          getInt(consecutiveTimesCorrectField, "Consecutive correct"),
                                           getInt(intervalField, "Interval"),
                                           getDate());
             if (changed) isDirty = true;
@@ -844,6 +847,7 @@ public class Build extends JFrame {
         itemNumberField.setText((itemNumber + 1) + "");
         timesCorrectField.setText(item.getTimesCorrect() + "");
         timesIncorrectField.setText(item.getTimesIncorrect() + "");
+        consecutiveTimesCorrectField.setText(item.getConsecutiveTimesCorrect() + "");
         intervalField.setText(item.getInterval() + "");
         setDate(item.getDisplayDate());
         stimulusField.requestFocus();
