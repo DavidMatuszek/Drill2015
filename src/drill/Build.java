@@ -1,6 +1,7 @@
 package drill;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -22,6 +23,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
 
@@ -61,7 +63,12 @@ public class Build extends JFrame {
     private JButton next = new JButton(">");
     private JButton deleteItem = new JButton("Delete Item");
     private JButton newItem = new JButton("New Item");
-    private Font font = new Font("Serif", Font.PLAIN, 18);
+    private int mainFontSize = 20;
+    private Font wordFont = new Font("Serif", Font.PLAIN, mainFontSize);
+    private int numberFontSize = 18;
+    private Font numberFont = new Font("SansSerif", Font.PLAIN, numberFontSize);
+    private int buttonFontSize = 18;
+    private Font buttonFont = new Font("SansSerif", Font.PLAIN, numberFontSize);
 
     // Non-GUI data
     private ItemList list;
@@ -102,6 +109,7 @@ public class Build extends JFrame {
      * Creates the GUI.
      */
     private void createGui() {
+        setFonts();
         buildMenuBar();
 
         JPanel searchPanel = makeSearchPanel();
@@ -354,9 +362,7 @@ public class Build extends JFrame {
      * @return The panel containing fields for Item information.
      */
     private JPanel makeMainPanel() {
-        searchField.setFont(font);
-        stimulusField.setFont(font);
-        responseField.setFont(font);
+        setFonts();
         
         JPanel mainPanel = new JPanel();
         JPanel stimulusResponsePanel = new JPanel();
@@ -394,6 +400,33 @@ public class Build extends JFrame {
 
         mainPanel.setBackground(Color.GREEN);
         return mainPanel;
+    }
+
+    private void setFonts() {
+        setFonts(wordFont, searchField, stimulusField, responseField);
+        setFonts(numberFont,
+                 fileMenu, menuBar, newMenuItem, loadMenuItem, saveMenuItem,
+                 saveAsMenuItem, saveAsVirginMenuItem, quitMenuItem,
+                 helpMenu, helpMenuItem, revertMenuItem);
+        setFonts(numberFont,
+                 itemNumberField, intervalField, timesCorrectField,
+                 timesIncorrectField, consecutiveTimesCorrectField,
+                 displayDateField, listSizeLabel);
+        setFonts(buttonFont,
+                 searchForward, searchBackward, previous, next,
+                 deleteItem, newItem);
+
+
+//        https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0ahUKEwi_laHTvtTKAhUBOiYKHbo3A-cQFggdMAA&url=http%3A%2F%2Fwww.coderanch.com%2Ft%2F341502%2FGUI%2Fjava%2Fchange-fonts-menus-buttons&usg=AFQjCNEBwB21umC-sd9ddH5IWGez_jNdIg
+        UIManager.put("Label.font", numberFont);
+        UIManager.put("Button.font", numberFont); // Works for dialogs
+//        UIManager.put("KeyEvent.font", numberFont);
+    }
+    
+    private void setFonts(Font font, Component... components) {
+        for (Component component : components) {
+            component.setFont(font);
+        }
     }
 
     /**
@@ -599,6 +632,7 @@ public class Build extends JFrame {
         itemNumberField.setText((itemNumber + 1) + "");
         timesCorrectField.setText("0");
         timesIncorrectField.setText("0");
+        consecutiveTimesCorrectField.setText("0");
         intervalField.setText(ItemList.intervalForLevel(0, ItemList.difficulty) + "");
         setDate(Integer.MAX_VALUE);
         stimulusField.requestFocus();
