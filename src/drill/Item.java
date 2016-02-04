@@ -398,7 +398,8 @@ public class Item implements Comparable<Item> {
      * @return A number of time units.
      */
     int getNewInterval(boolean correct) {
-        int level = timesCorrect - timesIncorrect;
+//        int level = timesCorrect - timesIncorrect;
+        int level = getConsecutiveTimesCorrect();
         
         // The following is a modification to temporarily reduce the level of
         // "learnedness" of an item. This is an attempt to reduce the problem

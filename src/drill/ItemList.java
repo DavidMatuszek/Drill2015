@@ -621,7 +621,12 @@ public class ItemList extends ArrayList<Item> {
      * @return The desired interval, as an exponential function of the difficulty.
      */
     static int intervalForLevel(int itemLevel, double newDifficulty) {
-        return Math.max(2, (int)(Math.pow(newDifficulty, itemLevel)));
+        // On small files (like, about 40 items), the number of "review"
+        // items (those with level >= 5) tends to "clog up the pipeline"
+        // and slow the learning of the remaining items. The following
+        // change to the exponent is an attempt to alleviate this problem.
+        int exponent = (itemLevel < 5 ? itemLevel : 2 * itemLevel - 5);
+        return Math.max(2, (int)(Math.pow(newDifficulty, exponent)));
     }
 
     /**
