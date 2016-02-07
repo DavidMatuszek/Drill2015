@@ -12,6 +12,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -62,7 +63,7 @@ public class Drill extends JFrame {
     private JRadioButtonMenuItem mediumMenuItem = new JRadioButtonMenuItem("Medium", true);
     private JRadioButtonMenuItem difficultMenuItem = new JRadioButtonMenuItem("Difficult", false);
     private JRadioButtonMenuItem veryDifficultMenuItem = new JRadioButtonMenuItem("Very Difficult", false);
-    
+    private JCheckBoxMenuItem reviewOnlyMenuItem = new JCheckBoxMenuItem("Review items only");
     private JMenu helpMenu = new JMenu("Help");
     private JMenuItem helpMenuItem = new JMenuItem("Help");
     
@@ -185,6 +186,8 @@ public class Drill extends JFrame {
         difficultyMenu.add(mediumMenuItem);
         difficultyMenu.add(difficultMenuItem);
         difficultyMenu.add(veryDifficultMenuItem);
+        difficultyMenu.addSeparator();
+        difficultyMenu.add(reviewOnlyMenuItem);
         group.add(veryEasyMenuItem);
         group.add(easyMenuItem);
         group.add(mediumMenuItem);
@@ -241,12 +244,14 @@ public class Drill extends JFrame {
         if (usersResponse.equals("")) {
             if (System.currentTimeMillis() - timeOfLastAction < 500) return;
         }
+        boolean reviewing = reviewOnlyMenuItem.isSelected();
         dontScoreMenuItem.setEnabled(false);
         if (firstTry) {
 //            correctResponse = LANGUAGE.addSpecialCharacters(currentItem.getResponse());
             // Got it right first try
             if (currentItem.responseIsCorrect(usersResponse)) {
                 markAsCorrect();
+                if (reviewing) itemList.updateReviewItem(currentItem, true);
                 displayMessage(currentItem.getStimulus(), currentItem.getResponse());
                 getNextItem();
             }
@@ -267,8 +272,9 @@ public class Drill extends JFrame {
                 // Eventually user gets it right, and we get to here
                 markAsIncorrect();
                 itemsInARowCorrect = 0;
+                if (reviewing) itemList.updateReviewItem(currentItem, false);
                 displayMessage(currentItem.getStimulus(), currentItem.getResponse());
-                displayNewItem(itemList.chooseNextItemToDisplay(false));
+                displayNewItem(itemList.chooseNextItemToDisplay(false, reviewing));
             }
             else {
                 // Still getting it wrong
@@ -292,14 +298,18 @@ public class Drill extends JFrame {
         itemList.put(currentItem);
     }
 
+    /**
+     * Gets next item to display. If ten items in a row have been answered
+     * correctly, and we are not in review only mode, then force a virgin
+     * item to be chosen (if possible).
+     */
     private void getNextItem() {
-//        previousStimulus = currentItem.getStimulus();
-//        previousResponse = currentItem.getResponse();
-        if (itemsInARowCorrect == 10) {
-            displayNewItem(itemList.chooseNextItemToDisplay(true));
+        boolean reviewing = reviewOnlyMenuItem.isSelected();
+        if (itemsInARowCorrect == 10 && !reviewing) {
+            displayNewItem(itemList.chooseNextItemToDisplay(true, reviewing));
             itemsInARowCorrect = 0;
         } else {
-            displayNewItem(itemList.chooseNextItemToDisplay(false));
+            displayNewItem(itemList.chooseNextItemToDisplay(false, reviewing));
         }
     }
 
@@ -457,6 +467,13 @@ public class Drill extends JFrame {
                 itemList.setDifficulty(4.0);
             }
         });
+        // Review Only
+        reviewOnlyMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                itemList.setReviewOnly(reviewOnlyMenuItem.isSelected());
+            }
+        });
         // Help
         helpMenuItem.addActionListener(new ActionListener() {
             @Override
@@ -510,7 +527,7 @@ public class Drill extends JFrame {
         catch (Exception e) {
             if (tryAgain("load", e)) {
                 load();
-                displayNewItem(itemList.chooseNextItemToDisplay(false));
+                displayNewItem(itemList.chooseNextItemToDisplay(false, false));
             }
             else {
                 dispose();
@@ -672,7 +689,7 @@ public class Drill extends JFrame {
         thisGui = this;
         load();
         setVisible(true);
-        displayNewItem(itemList.chooseNextItemToDisplay(false));
+        displayNewItem(itemList.chooseNextItemToDisplay(false, false));
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     }
 

@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.Set;
@@ -36,6 +37,23 @@ public class ItemList extends ArrayList<Item> {
      * correctly several times. 
      */
     static final int virginPromotion = 6;
+
+    /**
+     * When true, only items considered "learned" should be presented.
+     */
+    boolean reviewMode = false;
+    
+    /**
+     * In "review only" mode, this list holds the items that have been
+     * presented and gotten correct, so should not be presented again.
+     */
+    HashSet<Item> reviewItemsAnsweredCorrectly = new HashSet<Item>();
+    
+    /**
+     * In "review only" mode, this list holds the items that have been
+     * presented and gotten incorrect, so should be displayed again.
+     */
+    HashSet<Item> reviewItemsAnsweredIncorrectly = new HashSet<Item>();
     
     /**
      * Constructor for ItemList objects. Creates a new, empty ItemList and
@@ -53,6 +71,18 @@ public class ItemList extends ArrayList<Item> {
      */
     static double getDifficulty() {
         return difficulty;
+    }
+    
+    /**
+     * When entering review only mode, clear lists of review items.
+     * @param reviewOnly true if only learned items should be presented.
+     */
+    void setReviewOnly(boolean reviewOnly) {
+        reviewMode = reviewOnly;
+        if (reviewMode) {
+            reviewItemsAnsweredCorrectly = new HashSet<Item>();
+            reviewItemsAnsweredIncorrectly = new HashSet<Item>();
+        }
     }
     
     /**
@@ -347,25 +377,35 @@ public class ItemList extends ArrayList<Item> {
      * in with a virgin (if available), or just take the next item in the
      * PriorityQueue.
      * 3/22/2015 Added the ability to force a virgin item to be chosen.
+     * 2/6/2016 Added the ability to choose only review items.
      * @param forceVirgin If true, choose a virgin item (if possible).
-     *
+     * @param reviewOnly If true, try to return only review items.
      * @return Some Item to use.
      */
-    Item chooseNextItemToDisplay(boolean forceVirgin) {
+    Item chooseNextItemToDisplay(boolean forceVirgin, boolean reviewOnly) {
         Time.now++;
-        if (!queue.isEmpty() && !forceVirgin) {
+        int date = queue.peek().getDisplayDate();
+        if (!queue.isEmpty() && !forceVirgin && !reviewOnly) {
             // Return the element at the head of the queue, if its time has come
-            int date = queue.peek().getDisplayDate();
             if (date <= Time.now) {
                 Item nextItem = queue.poll();
-//                if (skippable(nextItem)) {
-//                    // Adjust display date and return item to queue, then try again
-//                    nextItem.setDisplayDate(date + Time.now);
-//                    put(nextItem);
-//                    return chooseNextItemToDisplay();
-//                }
                 return nextItem;
             }
+        }
+        if (reviewOnly) {
+            while (!queue.isEmpty()) {
+                if (date <= Time.now) {
+                    Item nextItem = queue.poll();
+                    if (nextItem.isReviewItem() &&
+                        ! reviewItemsAnsweredCorrectly.contains(nextItem)) {
+                        return nextItem;
+                    }
+                }
+            }
+            // Out of review items, but we have to return something!
+            reviewItemsAnsweredCorrectly = new HashSet<Item>();
+            reviewItemsAnsweredIncorrectly = new HashSet<Item>();
+            return new Item("No more review items.", "Do again");
         }
         // If no queue element is ready, return a virgin element
         Item virgin = getVirgin();
@@ -650,5 +690,29 @@ public class ItemList extends ArrayList<Item> {
             System.out.println("    " + item);
         }
         System.out.println();
+    }
+
+    /**
+     * In "Review Only" mode, update this item. If initially correct, it
+     * is added to the reviewItemsAnsweredCorrectly set, so that it will
+     * not be shown again. Otherwise it is added to the
+     * reviewItemsAnsweredIncorrectly set, where it can be used again,
+     * up to the number of times defined by learnedThreshhold.
+     * @param currentItem The Item being reviewed.
+     * @param correct Whether the Item was answered correctly.
+     */
+    public void updateReviewItem(Item currentItem, boolean correct) {
+        if (correct) {
+            if (reviewItemsAnsweredIncorrectly.contains(currentItem)) {
+                if (currentItem.getLevel() >= Item.learnedThreshhold) {
+                    reviewItemsAnsweredIncorrectly.remove(currentItem);
+                    reviewItemsAnsweredCorrectly.add(currentItem);
+                }
+            } else {
+                reviewItemsAnsweredCorrectly.add(currentItem);
+            }
+        } else {
+            reviewItemsAnsweredIncorrectly.add(currentItem);
+        }
     }
 }

@@ -45,6 +45,28 @@ public class Item implements Comparable<Item> {
     
     /** The next date at which to present this Item */
     private int displayDate;
+    
+//  TODO Implement review mode; see also code in ItemList  
+  /**
+   * An item is considered "learned" and available for review if it has
+   * been answered correctly this many times consecutively.
+   */
+  static int learnedThreshhold = 5;
+  
+  /**
+   * An item is considered "overlearned" and not worth reviewing it it
+   * has been answered this many times consecutively.
+   */
+  int overlearnedThreshhold = 10;
+    
+//    TODO Implement review mode and move this method further down on page
+    /**
+     * @return true if this Item is a learned item that should be reviewed.
+     */
+    boolean isReviewItem() {
+        return consecutiveTimesCorrect >= learnedThreshhold &&
+                consecutiveTimesCorrect < overlearnedThreshhold;
+    }
 
 // -------------------- Constructors --------------------
 
