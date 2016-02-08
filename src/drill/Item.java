@@ -255,6 +255,7 @@ public class Item implements Comparable<Item> {
      * @param displayDate The new display date.
      */
     public void setDisplayDate(int displayDate) {
+        if (displayDate < 0) throw new IllegalArgumentException("displayDate = " + displayDate);
         this.displayDate = displayDate;
     }
 

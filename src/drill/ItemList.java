@@ -540,9 +540,10 @@ public class ItemList extends ArrayList<Item> {
     void put(Item item) {
         Item nextItem = queue.peek();
         if (nextItem == null) {
+            item.setDisplayDate(Time.now);
+        } else if (nextItem.isVirgin()) {
             item.setDisplayDate(Time.now + 5);
-        }
-        else if (item.getDisplayDate() < nextItem.getDisplayDate()) {
+        } else if (item.getDisplayDate() < nextItem.getDisplayDate()) {
             item.setDisplayDate(nextItem.getDisplayDate() + 5);
         }
         queue.offer(item);

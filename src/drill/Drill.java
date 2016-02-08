@@ -527,7 +527,7 @@ public class Drill extends JFrame {
         catch (Exception e) {
             if (tryAgain("load", e)) {
                 load();
-                displayNewItem(itemList.chooseNextItemToDisplay(false, false));
+                displayNewItem(itemList.chooseNextItemToDisplay(false, itemList.reviewMode));
             }
             else {
                 dispose();
@@ -689,7 +689,7 @@ public class Drill extends JFrame {
         thisGui = this;
         load();
         setVisible(true);
-        displayNewItem(itemList.chooseNextItemToDisplay(false, false));
+        displayNewItem(itemList.chooseNextItemToDisplay(false, itemList.reviewMode));
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     }
 
