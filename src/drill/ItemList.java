@@ -147,6 +147,8 @@ public class ItemList extends ArrayList<Item> {
      * <b>stimulus || response || timesCorrect || interval || displayDate</b>
      * or<br>
      * <b>stimulus || response || timesCorrect || timesIncorrect || interval || displayDate</b>
+     * or<br>
+     * <b>stimulus || response || timesCorrect || timesIncorrect || consecutiveTimesCorrect || interval || displayDate</b>
      * Blank lines and comment lines (beginning with //) are allowed and ignored.
      * 3/26/2014 File may begin with one or more "//category" lines of statistics
      * 
@@ -160,6 +162,7 @@ public class ItemList extends ArrayList<Item> {
         this.clear();
         queue.clear();
         
+        Item item = null;
         while ((line = in.readLine()) != null) {
             line = line.trim();
             if (line.length() == 0) continue;
@@ -167,7 +170,7 @@ public class ItemList extends ArrayList<Item> {
                 handlePossibleParameterLine(line);
                 continue;
             }
-            Item item = readItem(line);
+            item = readItem(line);
             // Put all Items into the ArrayList
             add(item);
             // Put non-virgin items into the PriorityQueue
@@ -177,6 +180,8 @@ public class ItemList extends ArrayList<Item> {
 //                Time.now = item.getDisplayDate();
 //            }
         }
+        // If all items are virgin, we still need something in the queue
+        if (queue.isEmpty()) queue.add(item);
 //        if (Time.now == Integer.MAX_VALUE) { // all items are virgin
 //            Time.now = 0;
 //        }
