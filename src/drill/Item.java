@@ -187,6 +187,18 @@ public class Item implements Comparable<Item> {
     }
 
     /**
+     * Changes the number of times that this Item has been answered
+     * correctly.
+     * @param times The new number of correct responses.
+     */
+    public void setConsecutiveTimesCorrect(int times) {
+        if (times < 0) {
+            error("Negative consecutive times correct: " + times);
+        }
+        consecutiveTimesCorrect = times;
+    }
+
+    /**
      * @return the times incorrect
      */
     int getTimesIncorrect() {
