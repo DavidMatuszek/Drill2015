@@ -319,18 +319,17 @@ public class ItemList extends ArrayList<Item> {
     }
 
     /**
-     * 
+     * If there are NO virgin items in this ItemList, normalize the display dates.
      */
     private void resetItemDisplayTimes() {
         int leastDate = Integer.MAX_VALUE;
         Iterator<Item> iter = iterator();
         while (iter.hasNext()) {
             Item item = iter.next();
-            if (item.getDisplayDate() < leastDate)
+            int date = item.getDisplayDate();
+            if (date == Integer.MAX_VALUE) return;
+            if (date < leastDate)
                 leastDate = item.getDisplayDate();
-        }
-        if (leastDate == Integer.MAX_VALUE) {
-            return; // all items must be virgin
         }
         iter = iterator();
         while (iter.hasNext()) {
@@ -339,7 +338,6 @@ public class ItemList extends ArrayList<Item> {
                 item.setDisplayDate(item.getDisplayDate() - leastDate);
             }
         }
-        
     }
 
     /**
@@ -530,22 +528,11 @@ public class ItemList extends ArrayList<Item> {
     }
 
     /**
-     * Puts the item back into the priority queue. If it would be at
-     * the very front of the priority queue, adjust the date to put
-     * it slightly later that the item currently at the front of the
-     * priority queue.
-     * 
+     * Puts the item back into the priority queue. Incorrect adjustments
+     * to the displayDate removed 2/13/2016. 
      * @param item The item to be re-inserted into the priority queue.
      */
     void put(Item item) {
-        Item nextItem = queue.peek();
-        if (nextItem == null) {
-            item.setDisplayDate(Time.now);
-        } else if (nextItem.isVirgin()) {
-            item.setDisplayDate(Time.now + 5);
-        } else if (item.getDisplayDate() < nextItem.getDisplayDate()) {
-            item.setDisplayDate(nextItem.getDisplayDate() + 5);
-        }
         queue.offer(item);
     }
     
