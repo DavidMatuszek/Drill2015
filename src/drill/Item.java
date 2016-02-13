@@ -409,9 +409,13 @@ public class Item implements Comparable<Item> {
      * information that controls when this Item will next be presented.
      */
     public void promote() {
-        timesCorrect = isVirgin() ? ItemList.virginPromotion
-                                  : timesCorrect + 1;
-        consecutiveTimesCorrect += 1;
+        if (isVirgin() ) {
+            timesCorrect = ItemList.virginPromotion;
+            consecutiveTimesCorrect = ItemList.virginPromotion;
+        } else {
+            timesCorrect += 1;
+            consecutiveTimesCorrect += 1;
+        }
         interval = getNewInterval(true);
         displayDate = Time.now + interval;
     }
