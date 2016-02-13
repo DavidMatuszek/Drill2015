@@ -427,7 +427,8 @@ public class Drill extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String newSize =
                         JOptionPane.showInputDialog(thisGui,
-                                                    "Enter font size, in points (8..36)");
+                                                    "Enter font size, in points (8..36)",
+                                                    mainFontSize);
                 setFontSize(newSize);
             }
             
