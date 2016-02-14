@@ -123,11 +123,24 @@ public class Item implements Comparable<Item> {
         this.timesCorrect = timesCorrect;
         this.timesIncorrect = timesIncorrect;
         this.consecutiveTimesCorrect = consecutiveTimesCorrect;
-        this.interval = interval;
-        this.displayDate = displayDate;
+        this.interval = reasonable(interval);
+        this.displayDate = reasonable(displayDate);
+    }
+    
+    /**
+     * For some reason, older versions of Drill may set the item interval and/or the
+     * item display date to unreasonably large numbers, causing integer overflow.
+     * This method reduces numbers over a million to something more reasonable.
+     * @param n The number to be adjusted.
+     * @return The number given, or reduced if unreasonably large.
+     */
+    private int reasonable(int n) {
+        while (n > 1000000) n = n / 2;
+        return n;
     }
     
 // -------------------- Getters and setters --------------------
+
 
     /**
      * Returns the stimulus part of this Item.
