@@ -148,7 +148,7 @@ public class ItemTest {
         interval = virgin.getInterval();
         assertEquals(ItemList.intervalForLevel(level, difficulty), interval);
         assertEquals(Time.now + interval, virgin.getDisplayDate());
-        
+
         virgin.promote();
         level += 1;
         assertEquals(level, virgin.getTimesCorrect());
@@ -171,8 +171,9 @@ public class ItemTest {
         assertFalse(virgin.isVirgin());
         assertEquals(0, virgin.getTimesCorrect());
         assertEquals(1, virgin.getTimesIncorrect());
+        assertEquals(0, virgin.getConsecutiveTimesCorrect());
         actualInterval = virgin.getInterval();
-        computedInterval = ItemList.intervalForLevel(-1, difficulty);
+        computedInterval = ItemList.intervalForLevel(virgin.getLevel(), difficulty);
         assertEquals(computedInterval, actualInterval);
         assertEquals(Time.now + actualInterval, virgin.getDisplayDate());
         
@@ -270,9 +271,9 @@ public class ItemTest {
         assertEquals(ItemList.virginPromotion, item.getLevel());
         item.demote();
         item.promote();
-        assertEquals(ItemList.virginPromotion, item.getLevel());
+        assertEquals(1, item.getLevel());
         item.demote();
-        assertEquals(ItemList.virginPromotion - 1, item.getLevel());
+        assertEquals(0, item.getLevel());
     }
     
 
@@ -458,8 +459,8 @@ public class ItemTest {
     public final void testToString() {
 
         // stimulus, response, timesCorrect, timesIncorrect, interval, displayDate
-        item3 = new Item("three", "drei", 3, 7, 5, 23);
-        String expected = "three || drei || 3 || 7 || 5 || 23";
+        item3 = new Item("three", "drei", 3, 7, 5, 23, 99);
+        String expected = "three || drei || 3 || 7 || 5 || 23 || 99";
         assertEquals(expected, item3.toString());
     }
 

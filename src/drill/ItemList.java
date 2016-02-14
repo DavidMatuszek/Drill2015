@@ -659,7 +659,8 @@ public class ItemList extends ArrayList<Item> {
         // and slow the learning of the remaining items. The following
         // change to the exponent is an attempt to alleviate this problem.
         int exponent = (itemLevel < 5 ? itemLevel : 2 * itemLevel - 5);
-        return Math.max(2, (int)(Math.pow(newDifficulty, exponent)));
+        int interval = Math.max(2, (int)(Math.pow(newDifficulty, exponent)));
+        return Math.min(interval, 1000000);
     }
 
     /**

@@ -57,7 +57,7 @@ public class Item implements Comparable<Item> {
    * An item is considered "overlearned" and not worth reviewing it it
    * has been answered this many times consecutively.
    */
-  int overlearnedThreshhold = 10;
+  static int overlearnedThreshhold = 10;
     
 //    TODO Implement review mode and move this method further down on page
     /**
@@ -135,7 +135,7 @@ public class Item implements Comparable<Item> {
      * @param n The number to be adjusted.
      * @return The number given, or reduced if unreasonably large.
      */
-    private int reasonable(int n) {
+    static int reasonable(int n) {
         while (n > 1000000) n = n / 2;
         return n;
     }
