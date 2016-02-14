@@ -458,8 +458,7 @@ public class Item implements Comparable<Item> {
         // of getting a large number of items incorrect after not having used
         // the program for a few days.
         if (!correct) level = Math.max(level - 2, 1);
-        
-        return ItemList.intervalForLevel(level, ItemList.getDifficulty());
+        return Math.min(ItemList.intervalForLevel(level, ItemList.getDifficulty()), 1000000);
     }
     /**
      * Returns the String representation of this item that is used
