@@ -124,6 +124,7 @@ public class Item implements Comparable<Item> {
         this.timesIncorrect = timesIncorrect;
         this.consecutiveTimesCorrect = consecutiveTimesCorrect;
         this.interval = reasonable(interval);
+        this.displayDate = displayDate;
         if (displayDate != Integer.MAX_VALUE) this.displayDate = reasonable(displayDate);
     }
     

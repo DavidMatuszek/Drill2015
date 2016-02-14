@@ -45,7 +45,7 @@ public class ItemTest {
         Item item = new Item("ten", "zehn");
         assertEquals("ten", item.getStimulus());
         assertEquals("zehn", item.getResponse());
-        assertEquals(item.getDisplayDate(), Integer.MAX_VALUE);
+        assertEquals(Integer.MAX_VALUE, item.getDisplayDate());
         assertTrue(item.isVirgin());
         assertEquals(0, item.getTimesCorrect());
         assertEquals(0, item.getTimesIncorrect());
