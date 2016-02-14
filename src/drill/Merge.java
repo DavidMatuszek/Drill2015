@@ -36,6 +36,8 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
 
+import static drill.ItemListIO.*;
+
 /**
  * @author David Matuszek
  */
@@ -156,7 +158,7 @@ public class Merge extends JFrame {
                     update(3);
                 }
                 if (quitting) {
-                    chooseAndSaveOutputFile();
+                    chooseAndSaveOutputFile(baseList);
                 }
                 advance();
             }
@@ -340,10 +342,9 @@ public class Merge extends JFrame {
     private void readAndMergeLists() {
         List<ItemList> lists = new ArrayList<ItemList>(5);
 
-        File file = chooseInputFile();
-        ItemList baseList = readOneList(file);
+        ItemList baseList = chooseAndReadInputFile();
 
-        file = chooseInputFile();
+        File file = chooseInputFile();
         while (file != null) {
             ItemList nextList = readOneList(file);
             if (nextList == null) continue;
@@ -351,23 +352,6 @@ public class Merge extends JFrame {
             numberChecked = 0;
             merge(baseList, nextList);
             file = chooseInputFile();
-        }
-    }
-
-    /**
-     * Reads and returns one ItemList, or returns null if there is an
-     * error reading the file.
-     * @param file The file to read.
-     * @return The ItemList, or null.
-     */
-    private ItemList readOneList(File file) {
-        try {
-            ItemList newList = new ItemList();
-            newList.load(new BufferedReader(new FileReader(file)));
-            return newList;
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
-            return null;
         }
     }
     
@@ -393,9 +377,7 @@ public class Merge extends JFrame {
     }
     
     private void initialize() {
-        File file;
-        file = chooseInputFile();
-        baseList = readOneList(file);
+        baseList = chooseAndReadInputFile();
         for (Item item : baseList) {
             String stimulus = item.getStimulus();
             stimuli.add(stimulus);
@@ -410,7 +392,7 @@ public class Merge extends JFrame {
             file = chooseInputFile();
             if (file == null) {
                 quitting = true;
-                chooseAndSaveOutputFile();
+                chooseAndSaveOutputFile(baseList);
                 return;
             }
             nextList = readOneList(file);
@@ -505,47 +487,6 @@ public class Merge extends JFrame {
 
     private void displayNumberOfConflictsFound(int size) {
         conflictLabel.setText(size + " conflict" + (size == 1 ? "" : "s") + " to fix.");
-    }
-
-/**
-     * 
-     */
-    private void chooseAndSaveOutputFile() {
-        File file = chooseOutputFile();
-        try {
-            baseList.saveOnFile(file);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage() + "\nTry again.");
-            chooseAndSaveOutputFile();
-        }
-        System.exit(0);
-    }
-
-    ItemList readItemList() throws IOException {
-        File file = chooseInputFile();
-        if (file == null) return null;
-        ItemList itemList = new ItemList();
-        itemList.load(file);
-        return itemList;  
-    }
-
-    File chooseInputFile() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Load which file?");
-        int result = chooser.showOpenDialog(null);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            return chooser.getSelectedFile();
-        }
-        return null;
-    }
-    File chooseOutputFile() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Load which file?");
-        int result = chooser.showSaveDialog(null);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            return chooser.getSelectedFile();
-        }
-        return null;
     }
 
 }
