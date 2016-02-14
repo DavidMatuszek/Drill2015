@@ -124,7 +124,7 @@ public class Item implements Comparable<Item> {
         this.timesIncorrect = timesIncorrect;
         this.consecutiveTimesCorrect = consecutiveTimesCorrect;
         this.interval = reasonable(interval);
-        this.displayDate = reasonable(displayDate);
+        if (displayDate != Integer.MAX_VALUE) this.displayDate = reasonable(displayDate);
     }
     
     /**
@@ -351,20 +351,20 @@ public class Item implements Comparable<Item> {
         return true;
     }
     
-    /**
-     * Old version, without consecutiveTimesCorrect.
-     */
-    public boolean modify(String newStimulus,
-                          String newResponse,
-                          int newTimesCorrect,
-                          int newTimesIncorrect,
-                          int newInterval,
-                          int newDisplayDate) {
-        return modify(newStimulus, newResponse,
-                      newTimesCorrect, newTimesIncorrect,
-                      consecutiveTimesCorrect, // Used by editor; leave unchanged
-               newInterval, newDisplayDate);
-    }
+//    /**
+//     * Old version, without consecutiveTimesCorrect.
+//     */
+//    public boolean modify(String newStimulus,
+//                          String newResponse,
+//                          int newTimesCorrect,
+//                          int newTimesIncorrect,
+//                          int newInterval,
+//                          int newDisplayDate) {
+//        return modify(newStimulus, newResponse,
+//                      newTimesCorrect, newTimesIncorrect,
+//                      consecutiveTimesCorrect, // Used by editor; leave unchanged
+//               newInterval, newDisplayDate);
+//    }
     
     /**
      * Throws an IllegalArgumentException if any parameter is invalid.

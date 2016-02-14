@@ -45,6 +45,7 @@ public class ItemTest {
         Item item = new Item("ten", "zehn");
         assertEquals("ten", item.getStimulus());
         assertEquals("zehn", item.getResponse());
+        assertEquals(item.getDisplayDate(), Integer.MAX_VALUE);
         assertTrue(item.isVirgin());
         assertEquals(0, item.getTimesCorrect());
         assertEquals(0, item.getTimesIncorrect());
@@ -67,9 +68,9 @@ public class ItemTest {
      */
     @Test
     public final void testModifyStringStringIntIntInt() {
-        Item item = new Item("foo", "bar", 666, 666, 666, 666);
-        assertTrue(item.modify("eleven", "elf", 8, 1, 9, 10));
-        assertFalse(item.modify("eleven", "elf", 8, 1, 9, 10));
+        Item item = new Item("foo", "bar", 666, 666, 666, 666, 666);
+        assertTrue(item.modify("eleven", "elf", 8, 1, 3, 9, 10));
+        assertFalse(item.modify("eleven", "elf", 8, 1, 3, 9, 10));
         checkAllFieldsOfItem(item);
     }
     
