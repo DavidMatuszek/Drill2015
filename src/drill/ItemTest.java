@@ -156,6 +156,18 @@ public class ItemTest {
         assertEquals(ItemList.intervalForLevel(level, difficulty), interval);
         assertEquals(Time.now + interval, virgin.getDisplayDate());
     }
+    
+    @Test
+    public final void testGetNewInterval() {
+        Item level4 = new Item("stim", "resp", 8, 4, 4, 10, 0);
+        Item level7 = new Item("stim", "resp", 10, 3, 7, 10, 0);
+        assertEquals(16, level4.getNewInterval(true, 2.00));
+        assertEquals(81, level4.getNewInterval(true, 3.00));
+        assertEquals(256, level4.getNewInterval(true, 4.00));
+        assertEquals(128, level7.getNewInterval(true, 2.00));
+        assertEquals(972, level7.getNewInterval(true, 3.00));
+        assertEquals(4096, level7.getNewInterval(true, 4.00));
+    }
 
     /**
      * Test method for {@link Item#demote()}.

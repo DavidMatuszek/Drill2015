@@ -63,7 +63,7 @@ public class ItemList extends ArrayList<Item> {
         super(500);
         itemFile = null;
         Time.now = 0;
-        queue = new PriorityQueue<Item>(100);
+        queue = new PriorityQueue<Item>(200);
     }
     
     /**

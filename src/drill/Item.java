@@ -430,7 +430,7 @@ public class Item implements Comparable<Item> {
             timesCorrect += 1;
             consecutiveTimesCorrect += 1;
         }
-        interval = getNewInterval(true);
+        interval = getNewInterval(true, ItemList.getDifficulty());
         displayDate = Time.now + interval;
     }
 
@@ -441,7 +441,7 @@ public class Item implements Comparable<Item> {
     public void demote() {
         timesIncorrect += 1;
         consecutiveTimesCorrect = 0;
-        interval = getNewInterval(false);
+        interval = getNewInterval(false, ItemList.getDifficulty());
         displayDate = Time.now + interval;
     }
     
@@ -450,17 +450,37 @@ public class Item implements Comparable<Item> {
      * @param correct Whether this item is correct.
      * @return A number of time units.
      */
-    int getNewInterval(boolean correct) {
-//        int level = timesCorrect - timesIncorrect;
-        int level = getConsecutiveTimesCorrect();
+    int getNewInterval(boolean correct, double difficulty) {
+        int level = getLevel();
+//        double difficulty = ItemList.getDifficulty();
         
         // The following is a modification to temporarily reduce the level of
         // "learnedness" of an item. This is an attempt to reduce the problem
         // of getting a large number of items incorrect after not having used
         // the program for a few days.
+        
         if (!correct) level = Math.max(level - 2, 1);
-        return Math.min(ItemList.intervalForLevel(level, ItemList.getDifficulty()), 1000000);
+        
+//        Base        1        2        3        4        5        6        7        8        9       10       11       12
+//        ------------------------------------------------------------------------------------------------------------------
+//          2.00        2        4        8       16       32       64      128      256      512     1024     2048     4096 
+//          2.50        2        6       15       39       97      195      390      781     1562     3125     6250    12500 
+//          3.00        3        9       27       81      243      486      972     1944     3888     7776    15552    31104 
+//          3.50        3       12       42      150      525     1050     2100     4201     8403    16807    33614    67228 
+//          4.00        4       16       64      256     1024     2048     4096     8192    16384    32768    65536   131072 
+//        where maxlevel =  5
+
+        int interval;
+        int maxLevel = 5;
+        if (level <= maxLevel) {
+            interval = (int)(Math.pow(difficulty, level));
+        } else {
+            int excess = level - maxLevel;
+            interval = (int)(Math.pow(difficulty, maxLevel) * Math.pow(2, excess));
+        }
+        return Math.min(interval, 1000000);
     }
+    
     /**
      * Returns the String representation of this item that is used
      * for the student data file. The form is:<br>
