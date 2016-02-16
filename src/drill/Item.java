@@ -580,10 +580,8 @@ public class Item implements Comparable<Item> {
         boolean isCorrect = false;
 
         // simple tests
-        if (response.equals(usersResponse.trim()))
-            return true;
-        if (usersResponse.trim().length() == 0)
-            return false;
+        if (response.equals(usersResponse.trim().replaceAll("  +", " "))) return true;
+        if (usersResponse.trim().length() == 0) return false;
         
         Set<String> legalResponses = breakIntoAlternatives(response, " \\| |; ");
         Set<String> legalResponsesWithoutParens =

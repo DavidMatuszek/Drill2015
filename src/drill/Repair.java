@@ -45,8 +45,17 @@ public class Repair {
      * @param item
      */
     private void repair(Item item) {
-        if (item.getDisplayDate() == 524224) {
-            item.setVirgin(true);
+//        if (item.getDisplayDate() == 524224) {
+//            item.setVirgin(true);
+//        }
+        if (item.getDisplayDate() > 2500) {
+            int newInterval = item.getNewInterval(true, item.getLevel());
+            if (newInterval < 5) newInterval = 5;
+            int difference = item.getInterval() - newInterval;
+            int newDate = item.getDisplayDate() - difference;
+            if (newDate < 0) newDate = 100;
+            item.setInterval(newInterval);
+            item.setDisplayDate(newDate);
         }
     }
 
