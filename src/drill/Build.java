@@ -292,10 +292,10 @@ public class Build extends JFrame {
                                 + "To enter umlauts in Windows, use the United States-International\n"
                                 + "keyboard, then hit a double-quote (\") followed by the vowel.\n"
                                 + "\n"
-                                + "The item position in the list, the times correct, the times incorrect, and\n"
-                                + "the desired display date (number of item presentations before this item is\n"
-                                + "shown again) are editable; the interval between presentations is computed\n"
-                                + "from the times correct and times incorrect, and is not editable.\n"
+                                + "The item position in the list, the times correct, the times incorrect, the\n"
+                                + "consecutive times correct, and the desired display date (number of item\n"
+                                + "presentations before this item is shown again) are editable; the interval\n"
+                                + "between presentations is computed from the other values, and is not editable.\n"
                                 + "\n"
                                 + "The arrows at the bottom of the screen can be used to step forward and\n"
                                 + "backward through all the items.\n"
@@ -304,7 +304,11 @@ public class Build extends JFrame {
                                 + "\n"
                                 + "The \"New Item\" button saves the currently displayed item and clears the\n"
                                 + "screen to allow the next item to be entered. This is equivalent to hitting\n"
-                                + "Enter while in the Response field.";
+                                + "Enter while in the Response field.\n"
+                                + "\n"
+                                + "The Revert menu item (on the help menu) restores the currently displayed\n"
+                                + "item to its initial state. This is useful primarily when an accidental\n"
+                                + "change has been made to the item.";
                 JOptionPane.showMessageDialog(gui, message);  
             }            
         });
