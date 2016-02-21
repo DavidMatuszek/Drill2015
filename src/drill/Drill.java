@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.prefs.Preferences;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
@@ -25,6 +26,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.UnsupportedLookAndFeelException;
+import java.util.prefs.Preferences;
 
 /**
  * The main class for the Drill flash card program.
@@ -72,7 +74,8 @@ public class Drill extends JFrame {
     private int mainFontSize = 20;
     private int messageFontSize = 14;
     private Font mainFont = new Font("Serif", Font.PLAIN, mainFontSize);
-    private Font messageFont = new Font("SansSerif", Font.PLAIN, messageFontSize);
+    private Font messageFont = new Font("SansSerif", Font.PLAIN, messageFontSize); 
+    private Preferences userPrefs;
 
     /** This Drill object; public so it can be used in Listeners. */
     public static Drill thisGui;
@@ -630,23 +633,29 @@ public class Drill extends JFrame {
     private void setFontSize(String newSize) {
         try {
             int size = new Integer(newSize).intValue();
-            if (size < 8 || size > 36) throw new NumberFormatException(newSize);
-            mainFontSize = size;
-            messageFontSize = Math.max(size - 6, 8);
-            mainFont = new Font("Serif", Font.PLAIN, mainFontSize);
-            messageFont = new Font("SansSerif", Font.PLAIN, messageFontSize);
-            stimulusField.setFont(mainFont);
-            responseField.setFont(mainFont);
-            correctResponseField.setFont(mainFont);
-            percentLabel.setFont(messageFont);
-            numberOfTrialsLabel.setFont(messageFont);
-            previousItemStimulus.setFont(messageFont);
-            previousItemResponse.setFont(messageFont);
-            pack();
+            setFontSize(size);
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(thisGui,
                     "Illegal font size: " + newSize);
         }
+    }
+
+    private void setFontSize(int size) {
+        if (size < 8 || size > 36) throw new NumberFormatException(size + "");
+        mainFontSize = size;
+        userPrefs = Preferences.userNodeForPackage(Drill.class);
+        userPrefs.putInt("DrillFontSize", mainFontSize);
+        messageFontSize = Math.max(size - 6, 8);
+        mainFont = new Font("Serif", Font.PLAIN, mainFontSize);
+        messageFont = new Font("SansSerif", Font.PLAIN, messageFontSize);
+        stimulusField.setFont(mainFont);
+        responseField.setFont(mainFont);
+        correctResponseField.setFont(mainFont);
+        percentLabel.setFont(messageFont);
+        numberOfTrialsLabel.setFont(messageFont);
+        previousItemStimulus.setFont(messageFont);
+        previousItemResponse.setFont(messageFont);
+        pack();
     }
     
     /**
@@ -689,6 +698,8 @@ public class Drill extends JFrame {
     private void run() {
         thisGui = this;
         load();
+        userPrefs = Preferences.userNodeForPackage(Drill.class);
+        setFontSize(userPrefs.getInt("DrillFontSize", mainFontSize));
         setVisible(true);
         displayNewItem(itemList.chooseNextItemToDisplay(false, itemList.reviewMode));
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
