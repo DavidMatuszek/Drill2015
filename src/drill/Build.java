@@ -13,6 +13,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -25,6 +26,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
+import javax.swing.text.DefaultEditorKit;
 
 
 /**
@@ -33,14 +35,20 @@ import javax.swing.WindowConstants;
 public class Build extends JFrame {
     // Menus
     private JMenuBar menuBar = new JMenuBar();
+    // File menu
     private JMenu fileMenu = new JMenu("File");
     private JMenuItem newMenuItem = menuItem("New...", KeyEvent.VK_N, false);
     private JMenuItem loadMenuItem = menuItem("Open...", KeyEvent.VK_O, false);
     private JMenuItem saveMenuItem = menuItem("Save", KeyEvent.VK_S, false);
-    private JMenuItem saveAsMenuItem = menuItem("Save As...", KeyEvent.VK_S, true);
-   
+    private JMenuItem saveAsMenuItem = menuItem("Save As...", KeyEvent.VK_S, true);   
     private JMenuItem saveAsVirginMenuItem = new JMenuItem("Save As Virgin...");
     private JMenuItem quitMenuItem = menuItem("Save And Quit", KeyEvent.VK_Q, false);
+    // Edit menu
+    private JMenu editMenu = new JMenu("Edit");
+    private JMenuItem cutMenuItem = menuItem("Cut", KeyEvent.VK_X, false, new DefaultEditorKit.CutAction());
+    private JMenuItem copyMenuItem = menuItem("Copy", KeyEvent.VK_C, false, new DefaultEditorKit.CopyAction());
+    private JMenuItem pasteMenuItem = menuItem("Paste", KeyEvent.VK_V, false, new DefaultEditorKit.PasteAction());
+    // Help menu
     private JMenu helpMenu = new JMenu("Help");
     private JMenuItem helpMenuItem = new JMenuItem("Help");
     private JMenuItem revertMenuItem = menuItem("Revert", KeyEvent.VK_Z, false);
@@ -68,7 +76,7 @@ public class Build extends JFrame {
     private int numberFontSize = 18;
     private Font numberFont = new Font("SansSerif", Font.PLAIN, numberFontSize);
     private int buttonFontSize = 18;
-    private Font buttonFont = new Font("SansSerif", Font.PLAIN, numberFontSize);
+    private Font buttonFont = new Font("SansSerif", Font.PLAIN, buttonFontSize);
 
     // Non-GUI data
     private ItemList list;
@@ -128,6 +136,7 @@ public class Build extends JFrame {
      */
     private void buildMenuBar() {
         setJMenuBar(menuBar);
+        
         menuBar.add(fileMenu);
         fileMenu.add(newMenuItem);
         fileMenu.add(loadMenuItem);
@@ -136,9 +145,24 @@ public class Build extends JFrame {
         fileMenu.add(saveAsVirginMenuItem);
         fileMenu.addSeparator();
         fileMenu.add(quitMenuItem);
+        
+        menuBar.add(editMenu);
+        editMenu.add(cutMenuItem);
+        editMenu.add(copyMenuItem);
+        editMenu.add(pasteMenuItem);
+        
         menuBar.add(helpMenu);
         helpMenu.add(helpMenuItem);
         helpMenu.add(revertMenuItem);
+    }
+
+    private static JMenuItem menuItem(String words, int key, boolean shifted, Action action) {
+        JMenuItem menuItem = new JMenuItem(action);
+        menuItem.setText(words);
+        int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(); // control
+        if (shifted) mask |= java.awt.event.InputEvent.SHIFT_DOWN_MASK;
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(key, mask));
+        return menuItem;
     }
 
     /**
@@ -411,7 +435,8 @@ public class Build extends JFrame {
         setFonts(numberFont,
                  fileMenu, menuBar, newMenuItem, loadMenuItem, saveMenuItem,
                  saveAsMenuItem, saveAsVirginMenuItem, quitMenuItem,
-                 helpMenu, helpMenuItem, revertMenuItem);
+                 editMenu, cutMenuItem, copyMenuItem, pasteMenuItem,
+                 helpMenu, editMenu, helpMenuItem, revertMenuItem);
         setFonts(numberFont,
                  itemNumberField, intervalField, timesCorrectField,
                  timesIncorrectField, consecutiveTimesCorrectField,
@@ -427,7 +452,7 @@ public class Build extends JFrame {
 //        UIManager.put("KeyEvent.font", numberFont);
     }
     
-    private void setFonts(Font font, Component... components) {
+    private static void setFonts(Font font, Component... components) {
         for (Component component : components) {
             component.setFont(font);
         }

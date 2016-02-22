@@ -411,8 +411,8 @@ public class ItemList extends ArrayList<Item> {
             return new Item("No more review items.", "Do again");
         }
         // If no queue element is ready, return a virgin element
-        Item virgin = getVirgin();
-        if (virgin != null) return virgin;
+        Item nextItem = getVirgin();
+        if (nextItem != null) return nextItem;
         // If no virgins left, return head of queue anyway
         return queue.poll();
     }

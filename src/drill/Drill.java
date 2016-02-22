@@ -12,6 +12,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.prefs.Preferences;
 
+import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
@@ -26,6 +27,8 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.text.DefaultEditorKit;
+
 import java.util.prefs.Preferences;
 
 /**
@@ -173,6 +176,9 @@ public class Drill extends JFrame {
         fileMenu.addSeparator();
         fileMenu.add(quitMenuItem);
         
+        // Edit
+        menuBar.add(createEditMenu());
+        
         // Special
         menuBar.add(specialMenu);
         specialMenu.add(dontScoreMenuItem);
@@ -203,6 +209,26 @@ public class Drill extends JFrame {
     }
 
     /**
+     * Create an Edit menu to support cut/copy/paste.
+     */
+    public JMenu createEditMenu () {
+        JMenuItem menuItem = null;
+        JMenu editMenu = new JMenu("Edit");
+
+        menuItem = menuItem("Cut", KeyEvent.VK_X, false, new DefaultEditorKit.CutAction());
+        editMenu.add(menuItem);
+
+        menuItem = menuItem("Copy", KeyEvent.VK_C, false, new DefaultEditorKit.CopyAction());
+        editMenu.add(menuItem);
+
+        menuItem = menuItem("Paste", KeyEvent.VK_V, false, new DefaultEditorKit.PasteAction());
+        editMenu.add(menuItem);
+
+        return editMenu;
+    }
+    
+
+    /**
      * Returns a menu item whose text and accelerator keys do not
      * depend on which operating system is being used. If no
      * accelerator key is desired, use zero for that parameter.
@@ -214,6 +240,14 @@ public class Drill extends JFrame {
      */
     private static JMenuItem menuItem(String words, int key, boolean shifted) {
         JMenuItem menuItem = new JMenuItem(words);
+        int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(); // control
+        if (shifted) mask |= java.awt.event.InputEvent.SHIFT_DOWN_MASK;
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(key, mask));
+        return menuItem;
+    }
+    private static JMenuItem menuItem(String words, int key, boolean shifted, Action action) {
+        JMenuItem menuItem = new JMenuItem(action);
+        menuItem.setText(words);
         int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(); // control
         if (shifted) mask |= java.awt.event.InputEvent.SHIFT_DOWN_MASK;
         menuItem.setAccelerator(KeyStroke.getKeyStroke(key, mask));
