@@ -469,14 +469,38 @@ public class Item implements Comparable<Item> {
 //          3.50        3       12       42      150      525     1050     2100     4201     8403    16807    33614    67228 
 //          4.00        4       16       64      256     1024     2048     4096     8192    16384    32768    65536   131072 
 //        where maxlevel =  5
+        
+//        Revised:
+//            Base        1        2        3        4        5        6        7        8        9       10       11       12
+//            ---------------------------------------------------------------------------------------------------------------------
+//              2.00        2        4        8       16       32       64       96      128      160      192      224      256 
+//              2.50        2        6       15       39       97      194      291      388      485      582      679      776 
+//              3.00        3        9       27       81      243      486      729      972     1215     1458     1701     1944 
+//              3.50        3       12       42      150      525     1050     1575     2100     2625     3150     3675     4200 
+//              4.00        4       16       64      256     1024     2048     3072     4096     5120     6144     7168     8192 
+//          where maxlevel =  5
 
+        return getInterval(difficulty, level);
+    }
+
+    /**
+     * Determine the interval for a correct item.
+     * @param difficulty The overall difficulty of the ItemList.
+     * @param level The level of this item.
+     * @return An interval for this item.
+     */
+    int getInterval(double difficulty, int level) {
         int interval;
         int maxLevel = 5;
+        int maxStep = (int)(Math.pow(difficulty, maxLevel));
+        System.out.println("difficulty = " + difficulty);
+        System.out.println("maxStep = " + maxStep);
         if (level <= maxLevel) {
+            System.out.println("level = " + level);
             interval = (int)(Math.pow(difficulty, level));
         } else {
             int excess = level - maxLevel;
-            interval = (int)(Math.pow(difficulty, maxLevel) * Math.pow(2, excess));
+            interval = (int)(Math.pow(difficulty, maxLevel) + (excess * maxStep));
         }
         return Math.min(interval, 1000000);
     }

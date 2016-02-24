@@ -5,6 +5,7 @@ package drill;
 
 import java.awt.Font;
 import java.io.File;
+import java.util.Random;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -19,6 +20,10 @@ import static drill.ItemListIO.*;
  * @author David Matuszek
  */
 public class Repair {
+    
+    Random rand = new Random();
+    double difficulty;
+    ItemList items;
 
     public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
         javax.swing.UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
@@ -30,7 +35,8 @@ public class Repair {
     private void run() {
         
         showInstructions();
-        ItemList items = chooseAndReadInputFile();
+        items = chooseAndReadInputFile();
+        difficulty = items.getDifficulty();
         repair(items);
         chooseAndSaveOutputFile(items);
     }
@@ -45,15 +51,18 @@ public class Repair {
      * @param item
      */
     private void repair(Item item) {
-//        if (item.getDisplayDate() == 524224) {
-//            item.setVirgin(true);
-//        }
-        if (item.getDisplayDate() > 2500) {
-            int newInterval = item.getNewInterval(true, item.getLevel());
+        if (item.getTimesCorrect() + item.getTimesIncorrect() == 0) {
+            item.setVirgin(true);
+            return;
+        }
+        int maxInterval = item.getInterval(difficulty, 12);
+        System.out.println(maxInterval);
+        if (item.getInterval() > maxInterval) {
+            int newInterval = item.getInterval(difficulty, item.getLevel());
             if (newInterval < 5) newInterval = 5;
             int difference = item.getInterval() - newInterval;
             int newDate = item.getDisplayDate() - difference;
-            if (newDate < 0) newDate = 100;
+            if (newDate < 0) newDate = 100 + rand.nextInt(100);
             item.setInterval(newInterval);
             item.setDisplayDate(newDate);
         }
