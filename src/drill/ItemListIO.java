@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.prefs.Preferences;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -17,14 +18,32 @@ import javax.swing.JOptionPane;
  * @author David Matuszek
  */
 public class ItemListIO {
+    
+    static File file;
 
     static ItemList chooseAndReadInputFile() {
-        File file = chooseInputFile();
+        file = chooseInputFile();
         return readOneList(file);
     }
+    
+    static String getInputFileName() {
+        return file.getPath();
+    }
 
+    /**
+     * Asks the user to choose an input file, and returns it (if chosen)
+     * or null (if the user cancelled the request).
+     * @return A file to read, or null.
+     */
     static File chooseInputFile() {
-        JFileChooser chooser = new JFileChooser();
+        
+
+        Preferences userPrefs = Preferences.userNodeForPackage(Drill.class);
+        String key = Drill.class.getSimpleName() + "Directory";
+        String parent = userPrefs.get(key, null);
+        
+        
+        JFileChooser chooser = new JFileChooser(parent);
         chooser.setDialogTitle("Load which file?");
         int result = chooser.showOpenDialog(null);
         if (result == JFileChooser.APPROVE_OPTION) {

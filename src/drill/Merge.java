@@ -88,6 +88,7 @@ public class Merge extends JFrame {
     private void run() {
         createGui();
         addListeners();
+        setLocationRelativeTo(getParent());
         pack();
         setVisible(true);
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -378,6 +379,7 @@ public class Merge extends JFrame {
     
     private void initialize() {
         baseList = chooseAndReadInputFile();
+        if (baseList == null) System.exit(0);
         for (Item item : baseList) {
             String stimulus = item.getStimulus();
             stimuli.add(stimulus);
@@ -396,6 +398,7 @@ public class Merge extends JFrame {
                 return;
             }
             nextList = readOneList(file);
+            this.setTitle(ItemListIO.getInputFileName());
             conflictList = new ItemList();
             for (Item item : nextList) {
                 String stimulus = item.getStimulus();
@@ -422,7 +425,7 @@ public class Merge extends JFrame {
         String newResponse = item.getResponse();
         int index = baseList.searchForStimulus(item.getStimulus());
         String oldResponse = baseList.get(index).getResponse();
-        return newResponse.equals(oldResponse);
+        return ! newResponse.equals(oldResponse);
     }
 
 /**
