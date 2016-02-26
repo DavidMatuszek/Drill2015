@@ -56,7 +56,6 @@ public class Repair {
             return;
         }
         int maxInterval = item.getInterval(difficulty, 12);
-        System.out.println(maxInterval);
         if (item.getInterval() > maxInterval) {
             int newInterval = item.getInterval(difficulty, item.getLevel());
             if (newInterval < 5) newInterval = 5;

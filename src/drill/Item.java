@@ -493,10 +493,7 @@ public class Item implements Comparable<Item> {
         int interval;
         int maxLevel = 5;
         int maxStep = (int)(Math.pow(difficulty, maxLevel));
-        System.out.println("difficulty = " + difficulty);
-        System.out.println("maxStep = " + maxStep);
         if (level <= maxLevel) {
-            System.out.println("level = " + level);
             interval = (int)(Math.pow(difficulty, level));
         } else {
             int excess = level - maxLevel;
