@@ -72,13 +72,16 @@ public class ItemListIO {
 
     static void chooseAndSaveOutputFile(ItemList baseList) {
         File file = chooseOutputFile();
+        saveFile(baseList, file);
+    }
+
+    static void saveFile(ItemList baseList, File file) {
         try {
             baseList.saveOnFile(file);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e.getMessage() + "\nTry again.");
             chooseAndSaveOutputFile(baseList);
         }
-        System.exit(0);
     }
     
     static File chooseOutputFile() {

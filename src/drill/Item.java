@@ -1,18 +1,9 @@
 package drill;
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
 
 /**
  * Represents a stimulus-response pair, but also contains student
@@ -23,7 +14,7 @@ import javax.swing.JTextField;
 public class Item implements Comparable<Item> {
     
     /** Difference in display dates should be at least this much */
-    static int minInterval = 2;
+    static int minInterval = 0;
     
     /** What is presented to the user */
     private String stimulus;
@@ -123,21 +114,8 @@ public class Item implements Comparable<Item> {
         this.timesCorrect = timesCorrect;
         this.timesIncorrect = timesIncorrect;
         this.consecutiveTimesCorrect = consecutiveTimesCorrect;
-        this.interval = reasonable(interval);
+        this.interval = interval;
         this.displayDate = displayDate;
-        if (displayDate != Integer.MAX_VALUE) this.displayDate = reasonable(displayDate);
-    }
-    
-    /**
-     * For some reason, older versions of Drill may set the item interval and/or the
-     * item display date to unreasonably large numbers, causing integer overflow.
-     * This method reduces numbers over a million to something more reasonable.
-     * @param n The number to be adjusted.
-     * @return The number given, or reduced if unreasonably large.
-     */
-    static int reasonable(int n) {
-        while (n > 1000000) n = n / 2;
-        return n;
     }
     
 // -------------------- Getters and setters --------------------
@@ -480,28 +458,9 @@ public class Item implements Comparable<Item> {
 //              4.00        4       16       64      256     1024     2048     3072     4096     5120     6144     7168     8192 
 //          where maxlevel =  5
 
-        return getInterval(difficulty, level);
+        return ItemList.getInterval(difficulty, level);
     }
 
-    /**
-     * Determine the interval for a correct item.
-     * @param difficulty The overall difficulty of the ItemList.
-     * @param level The level of this item.
-     * @return An interval for this item.
-     */
-    int getInterval(double difficulty, int level) {
-        int interval;
-        int maxLevel = 5;
-        int maxStep = (int)(Math.pow(difficulty, maxLevel));
-        if (level <= maxLevel) {
-            interval = (int)(Math.pow(difficulty, level));
-        } else {
-            int excess = level - maxLevel;
-            interval = (int)(Math.pow(difficulty, maxLevel) + (excess * maxStep));
-        }
-        return Math.min(interval, 1000000);
-    }
-    
     /**
      * Returns the String representation of this item that is used
      * for the student data file. The form is:<br>

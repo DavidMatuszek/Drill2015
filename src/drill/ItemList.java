@@ -20,12 +20,14 @@ import java.util.regex.Pattern;
  * level is maintained.
  * 
  * @author David Matuszek
- * @version Mar 2, 2015
+ * @version Feb 28, 2016
  */
 public class ItemList extends ArrayList<Item> {
     private PriorityQueue<Item> queue; // Non-virgin items, in priority order    
     private Preferences userPrefs;
     private File itemFile;
+    private static int minInterval = 0;
+    
     /** 
      * Difficulty level set by user.
      * 2.0 is very easy, 3.0 is moderate, 4.0 is very difficult
@@ -636,7 +638,7 @@ public class ItemList extends ArrayList<Item> {
                 int oldInterval = item.getInterval();
                 int oldDisplayDate = item.getDisplayDate();
                 int itemLevel = item.getLevel();
-                int newInterval = intervalForLevel(itemLevel, newDifficulty);
+                int newInterval = getInterval(newDifficulty, itemLevel);
                 int newDisplayDate = oldDisplayDate - oldInterval + newInterval; // ok if negative
                 item.setInterval(newInterval);
                 item.setDisplayDate(newDisplayDate);
@@ -654,13 +656,27 @@ public class ItemList extends ArrayList<Item> {
      * @return The desired interval, as an exponential function of the difficulty.
      */
     static int intervalForLevel(int itemLevel, double newDifficulty) {
-        // On small files (like, about 40 items), the number of "review"
-        // items (those with level >= 5) tends to "clog up the pipeline"
-        // and slow the learning of the remaining items. The following
-        // change to the exponent is an attempt to alleviate this problem.
-        int exponent = (itemLevel < 5 ? itemLevel : 2 * itemLevel - 5);
-        int interval = Math.max(2, (int)(Math.pow(newDifficulty, exponent)));
-        return Math.min(interval, 1000000);
+        return getInterval(newDifficulty, itemLevel);
+    }
+
+    /**
+     * Determine the interval for a correct item.
+     * @param difficulty The overall difficulty of the ItemList.
+     * @param level The level of this item.
+     * @return An interval for this item.
+     */
+    static int getInterval(double difficulty, int level) {
+        int interval;
+        int maxLevel = 5;
+        int maxStep = (int)(Math.pow(difficulty, maxLevel));
+        if (level <= maxLevel) {
+            interval = (int)(Math.pow(difficulty, level));
+        } else {
+            int excess = level - maxLevel;
+            interval = (int)(Math.pow(difficulty, maxLevel) + (excess * maxStep));
+        }
+        if (interval < minInterval) interval = minInterval;
+        return interval;
     }
 
     /**

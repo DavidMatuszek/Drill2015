@@ -68,17 +68,23 @@ public class Drill extends JFrame {
     private JRadioButtonMenuItem mediumMenuItem = new JRadioButtonMenuItem("Medium", true);
     private JRadioButtonMenuItem difficultMenuItem = new JRadioButtonMenuItem("Difficult", false);
     private JRadioButtonMenuItem veryDifficultMenuItem = new JRadioButtonMenuItem("Very Difficult", false);
-    private JCheckBoxMenuItem reviewOnlyMenuItem = new JCheckBoxMenuItem("Review items only");
+    private JRadioButtonMenuItem reviewOnlyMenuItem = new JRadioButtonMenuItem("Review items only");
+    private JRadioButtonMenuItem mixedMenuItem = new JRadioButtonMenuItem("Mixed review and new");
+    private JRadioButtonMenuItem favorNewMenuItem = new JRadioButtonMenuItem("Fewer review items");
     private JMenu helpMenu = new JMenu("Help");
     private JMenuItem helpMenuItem = new JMenuItem("Help");
-    
+
     private ButtonGroup group = new ButtonGroup();
+    private ButtonGroup group2 = new ButtonGroup();
+    
+    private enum Newness { NEW, REVIEW, MIXED }
 
     private int mainFontSize = 20;
     private int messageFontSize = 14;
     private Font mainFont = new Font("Serif", Font.PLAIN, mainFontSize);
     private Font messageFont = new Font("SansSerif", Font.PLAIN, messageFontSize); 
     private Preferences userPrefs;
+    Newness newness = Newness.MIXED;
 
     /** This Drill object; public so it can be used in Listeners. */
     public static Drill thisGui;
@@ -195,13 +201,20 @@ public class Drill extends JFrame {
         difficultyMenu.add(mediumMenuItem);
         difficultyMenu.add(difficultMenuItem);
         difficultyMenu.add(veryDifficultMenuItem);
-        difficultyMenu.addSeparator();
-        difficultyMenu.add(reviewOnlyMenuItem);
         group.add(veryEasyMenuItem);
         group.add(easyMenuItem);
         group.add(mediumMenuItem);
         group.add(difficultMenuItem);
         group.add(veryDifficultMenuItem);
+        
+        difficultyMenu.addSeparator();
+        
+        difficultyMenu.add(reviewOnlyMenuItem);
+        difficultyMenu.add(mixedMenuItem);
+        difficultyMenu.add(favorNewMenuItem);
+        group2.add(reviewOnlyMenuItem);
+        group2.add(mixedMenuItem);
+        group2.add(favorNewMenuItem);
         
         // Help
         menuBar.add(helpMenu);
@@ -510,6 +523,20 @@ public class Drill extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 itemList.setReviewOnly(reviewOnlyMenuItem.isSelected());
+            }
+        });
+        // Mixed new and review
+        mixedMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                itemList.setReviewOnly(mixedMenuItem.isSelected());
+            }
+        });
+        // Favor new items
+        favorNewMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                itemList.setReviewOnly(favorNewMenuItem.isSelected());
             }
         });
         // Help
