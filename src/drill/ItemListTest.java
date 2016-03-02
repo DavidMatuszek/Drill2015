@@ -140,7 +140,7 @@ public class ItemListTest {
         expectAndAdvance("seven");
         expectAndAdvance("nine");
         expectAndAdvance("ten");
-        assertNull(list.chooseNextItemToDisplay(false, false));
+        assertNull(list.chooseNextItemToDisplay(false));
     }
     
     /**
@@ -150,7 +150,7 @@ public class ItemListTest {
      * @param expectedStimulus The expected stimulus.
      */
     private void expectAndAdvance(String expectedStimulus) {
-        Item item = list.chooseNextItemToDisplay(false, false);
+        Item item = list.chooseNextItemToDisplay(false);
         assertEquals(expectedStimulus, item.getStimulus());
         item.setVirgin(false);
     }
@@ -211,7 +211,7 @@ public class ItemListTest {
                                    boolean correct,
                                    int expectedDate,
                                    int newExpectedDate) {
-        Item item = list.chooseNextItemToDisplay(false, false);
+        Item item = list.chooseNextItemToDisplay(false);
         if (!item.isVirgin()) {
             assertEquals("date", expectedDate, item.getDisplayDate());
         }
@@ -227,9 +227,9 @@ public class ItemListTest {
         String input = "good morning || konnichi wa\n"
                 + "good evening || komban wa\n";
         createGlobalList(input);
-        Item item1 = list.chooseNextItemToDisplay(false, false);
+        Item item1 = list.chooseNextItemToDisplay(false);
         item1.demote();
-        Item item2 = list.chooseNextItemToDisplay(false, false);
+        Item item2 = list.chooseNextItemToDisplay(false);
         item2.demote();
         for (Item item : list) {
             assertTrue(item.getDisplayDate() > 0);
@@ -297,19 +297,19 @@ public class ItemListTest {
         Item item;
         
         createGlobalList(input);
-        item = list.chooseNextItemToDisplay(false, false);
+        item = list.chooseNextItemToDisplay(false);
         assertEquals("zero", item.getStimulus());
         item.promote();
         list.put(item);
-        item = list.chooseNextItemToDisplay(false, false);
+        item = list.chooseNextItemToDisplay(false);
         assertEquals("one", item.getStimulus());
         
         createGlobalList(input);
-        item = list.chooseNextItemToDisplay(false, false);
+        item = list.chooseNextItemToDisplay(false);
         assertEquals("zero", item.getStimulus());
         item.demote();
         list.put(item);
-        item = list.chooseNextItemToDisplay(false, false);
+        item = list.chooseNextItemToDisplay(false);
         assertEquals("one", item.getStimulus());
     }
 }

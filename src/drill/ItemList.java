@@ -46,6 +46,11 @@ public class ItemList extends ArrayList<Item> {
     boolean reviewMode = false;
     
     /**
+     * When true, only unlearned items should be presented.
+     */
+    boolean preferNewItems = false;
+    
+    /**
      * In "review only" mode, this list holds the items that have been
      * presented and gotten correct, so should not be presented again.
      */
@@ -85,6 +90,13 @@ public class ItemList extends ArrayList<Item> {
             reviewItemsAnsweredCorrectly = new HashSet<Item>();
             reviewItemsAnsweredIncorrectly = new HashSet<Item>();
         }
+    }
+    
+    /**
+     * @param prefer Avoid presenting well-learned items.
+     */
+    void setPreferNew(boolean prefer) {
+        preferNewItems = prefer;
     }
     
     /**
@@ -387,17 +399,21 @@ public class ItemList extends ArrayList<Item> {
      * @param reviewOnly If true, try to return only review items.
      * @return Some Item to use.
      */
-    Item chooseNextItemToDisplay(boolean forceVirgin, boolean reviewOnly) {
+    Item OLD_chooseNextItemToDisplay(boolean forceVirgin) {
+        // TODO Clean up this mess!
         Time.now++;
-        int date = queue.peek().getDisplayDate();
-        if (!queue.isEmpty() && !forceVirgin && !reviewOnly) {
+        Item candidate = queue.peek();
+        int date = candidate.getDisplayDate();
+        if (!queue.isEmpty() && !forceVirgin && !reviewMode && ! preferNewItems) {
             // Return the element at the head of the queue, if its time has come
             if (date <= Time.now) {
                 Item nextItem = queue.poll();
                 return nextItem;
             }
+            Item nextItem = getVirgin();
+            if (nextItem != null) return nextItem;
         }
-        if (reviewOnly) {
+        if (reviewMode) {
             while (!queue.isEmpty()) {
                 if (date <= Time.now) {
                     Item nextItem = queue.poll();
@@ -412,11 +428,98 @@ public class ItemList extends ArrayList<Item> {
             reviewItemsAnsweredIncorrectly = new HashSet<Item>();
             return new Item("No more review items.", "Do again");
         }
+        if (preferNewItems) {
+            Item nextItem = queue.poll();
+            if (nextItem.isVirgin() ||
+                nextItem.getLevel() < Item.learnedThreshhold) {
+                return candidate;
+            }
+        }
         // If no queue element is ready, return a virgin element
         Item nextItem = getVirgin();
         if (nextItem != null) return nextItem;
         // If no virgins left, return head of queue anyway
         return queue.poll();
+    }
+    
+    Item previousItem = null;
+    
+    Item chooseNextItemToDisplay(boolean forceVirgin) {
+        Item nextItem = chooseNextItemToDisplayHelper(forceVirgin);
+        if (nextItem.equals(previousItem) && !queue.isEmpty()) {
+            Item anotherItem = chooseNextItemToDisplayHelper(forceVirgin);
+            if (anotherItem == null) return nextItem;
+            queue.add(nextItem);
+            previousItem = anotherItem;
+            return anotherItem;
+        }
+        previousItem = nextItem;
+        return nextItem;
+    }
+    
+    Item chooseNextItemToDisplayHelper(boolean forceVirgin) {
+        Item nextItem;
+        if (forceVirgin) {
+            nextItem = getVirgin();
+            if (nextItem != null) return nextItem;
+        }
+        if (reviewMode) {
+            nextItem = getReviewItem();
+            if (nextItem != null) return nextItem;
+        }
+        if (preferNewItems) {
+            nextItem = getNewItem(100);
+            if (nextItem != null) return nextItem;  
+        }
+        // Normal case
+        if (!queue.isEmpty()) {
+            int date = queue.peek().getDisplayDate();
+            if (date <= Time.now) return queue.poll();
+        } else {
+            nextItem = getVirgin();
+            if (nextItem != null) return nextItem;
+        }
+        if (!queue.isEmpty()) return queue.poll();
+        throw new RuntimeException("No items of any kind!");
+    }
+
+    /**
+     * @return
+     */
+    private Item getReviewItem() {
+        if (queue.isEmpty()) return null;
+        for (int i = 0; i < 100; i++) { // avoid possible infinite loop
+            Item nextItem = queue.poll();
+            if (nextItem.isReviewItem() &&
+                    ! reviewItemsAnsweredCorrectly.contains(nextItem)) {
+                return nextItem;
+            }
+            nextItem.setDisplayDate(Time.now + nextItem.getInterval());
+            queue.add(nextItem);
+        }
+        reviewItemsAnsweredCorrectly = new HashSet<Item>();
+        reviewItemsAnsweredIncorrectly = new HashSet<Item>();
+        return new Item("No more review items.", "Do again"); 
+    }
+
+    /**
+     * @return
+     */
+    private Item getNewItem(int remainingAttempts) {
+        if (remainingAttempts <= 0) return null;
+        Item nextItem = queue.peek();
+        int date = nextItem.getDisplayDate();
+        if (date > Time.now) {
+            nextItem = getVirgin();
+            if (nextItem != null) return nextItem; 
+        }
+        nextItem = queue.poll();
+        if (! nextItem.isReviewItem()) {
+            return nextItem;
+        }
+        nextItem.setDisplayDate(Time.now + nextItem.getInterval());
+        queue.add(nextItem);
+        return getNewItem(remainingAttempts - 1);
     }
 
     /**

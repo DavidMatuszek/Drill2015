@@ -462,6 +462,7 @@ public class Merge extends JFrame {
         dateField3.setText(Math.min(oldItem.getDisplayDate(),
                                     newItem.getDisplayDate()) + "");
         radio3.setSelected(true);
+        this.repaint();
     }
 
     /**

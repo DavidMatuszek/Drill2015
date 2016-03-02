@@ -14,7 +14,6 @@ import java.util.prefs.Preferences;
 
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -28,8 +27,6 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.text.DefaultEditorKit;
-
-import java.util.prefs.Preferences;
 
 /**
  * The main class for the Drill flash card program.
@@ -94,12 +91,9 @@ public class Drill extends JFrame {
     
     private boolean isDirty;
     private transient Item currentItem;
-//    private transient String previousStimulus;
-//    private transient String previousResponse;
     private boolean firstTry;
     private int numberCorrect = 0;
     private int numberIncorrect = 0;
-//    private String correctResponse = "";
     private int itemsSeen = 0;
     private double itemsLearned = 0;
     private long timeOfLastAction = 0;
@@ -215,6 +209,7 @@ public class Drill extends JFrame {
         group2.add(reviewOnlyMenuItem);
         group2.add(mixedMenuItem);
         group2.add(favorNewMenuItem);
+        mixedMenuItem.setSelected(true);
         
         // Help
         menuBar.add(helpMenu);
@@ -324,7 +319,7 @@ public class Drill extends JFrame {
                 itemsInARowCorrect = 0;
                 if (reviewing) itemList.updateReviewItem(currentItem, false);
                 displayMessage(currentItem.getStimulus(), currentItem.getResponse());
-                displayNewItem(itemList.chooseNextItemToDisplay(false, reviewing));
+                displayNewItem(itemList.chooseNextItemToDisplay(false));
             }
             else {
                 // Still getting it wrong
@@ -356,10 +351,10 @@ public class Drill extends JFrame {
     private void getNextItem() {
         boolean reviewing = reviewOnlyMenuItem.isSelected();
         if (itemsInARowCorrect == 10 && !reviewing) {
-            displayNewItem(itemList.chooseNextItemToDisplay(true, reviewing));
+            displayNewItem(itemList.chooseNextItemToDisplay(true));
             itemsInARowCorrect = 0;
         } else {
-            displayNewItem(itemList.chooseNextItemToDisplay(false, reviewing));
+            displayNewItem(itemList.chooseNextItemToDisplay(false));
         }
     }
 
@@ -522,21 +517,24 @@ public class Drill extends JFrame {
         reviewOnlyMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                itemList.setReviewOnly(reviewOnlyMenuItem.isSelected());
+                itemList.setReviewOnly(true);
+                itemList.setPreferNew(false);
             }
         });
         // Mixed new and review
         mixedMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                itemList.setReviewOnly(mixedMenuItem.isSelected());
+                itemList.setReviewOnly(false);
+                itemList.setPreferNew(false);
             }
         });
         // Favor new items
         favorNewMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                itemList.setReviewOnly(favorNewMenuItem.isSelected());
+                itemList.setReviewOnly(false);
+                itemList.setPreferNew(true);
             }
         });
         // Help
@@ -592,7 +590,7 @@ public class Drill extends JFrame {
         catch (Exception e) {
             if (tryAgain("load", e)) {
                 load();
-                displayNewItem(itemList.chooseNextItemToDisplay(false, itemList.reviewMode));
+                displayNewItem(itemList.chooseNextItemToDisplay(false));
             }
             else {
                 dispose();
@@ -762,7 +760,7 @@ public class Drill extends JFrame {
         userPrefs = Preferences.userNodeForPackage(Drill.class);
         setFontSize(userPrefs.getInt("DrillFontSize", mainFontSize));
         setVisible(true);
-        displayNewItem(itemList.chooseNextItemToDisplay(false, itemList.reviewMode));
+        displayNewItem(itemList.chooseNextItemToDisplay(false));
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     }
 

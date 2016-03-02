@@ -227,7 +227,7 @@ public class ImageDrill extends JFrame {
                 numberOfTrials++;
                 currentItem.demote();
                 list.put(currentItem);
-                displayNewItem(list.chooseNextItemToDisplay(false, false));
+                displayNewItem(list.chooseNextItemToDisplay(false));
             }
             else {
                 // Still getting it wrong
@@ -244,7 +244,7 @@ public class ImageDrill extends JFrame {
         numberCorrect++;
         currentItem.promote();
         list.put(currentItem);
-        displayNewItem(list.chooseNextItemToDisplay(false, false));
+        displayNewItem(list.chooseNextItemToDisplay(false));
     }
 
     private void displayStatistics() {
@@ -348,7 +348,7 @@ public class ImageDrill extends JFrame {
         catch (Exception e) {
             if (tryAgain("load", e)) {
                 load();
-                displayNewItem(list.chooseNextItemToDisplay(false, false));
+                displayNewItem(list.chooseNextItemToDisplay(false));
             }
             else {
                 dispose();
@@ -451,7 +451,7 @@ public class ImageDrill extends JFrame {
         list = new ItemList();
         load();
         setVisible(true);
-        displayNewItem(list.chooseNextItemToDisplay(false, false));
+        displayNewItem(list.chooseNextItemToDisplay(false));
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     }
 
