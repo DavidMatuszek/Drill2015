@@ -68,8 +68,11 @@ public class Drill extends JFrame {
     private JRadioButtonMenuItem reviewOnlyMenuItem = new JRadioButtonMenuItem("Review items only");
     private JRadioButtonMenuItem mixedMenuItem = new JRadioButtonMenuItem("Mixed review and new");
     private JRadioButtonMenuItem favorNewMenuItem = new JRadioButtonMenuItem("Fewer review items");
+    
     private JMenu helpMenu = new JMenu("Help");
     private JMenuItem helpMenuItem = new JMenuItem("Help");
+    private JMenuItem previewMenuItem = new JMenuItem("Preview");
+    private JMenuItem dumpMenuItem = new JMenuItem("Dump");
 
     private ButtonGroup group = new ButtonGroup();
     private ButtonGroup group2 = new ButtonGroup();
@@ -214,6 +217,8 @@ public class Drill extends JFrame {
         // Help
         menuBar.add(helpMenu);
         helpMenu.add(helpMenuItem);
+        helpMenu.add(previewMenuItem);
+        helpMenu.add(dumpMenuItem);
     }
 
     /**
@@ -544,7 +549,22 @@ public class Drill extends JFrame {
                 JOptionPane.showMessageDialog(thisGui,
                         helpMessage());
             }
-            
+        });
+        // Preview
+        previewMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(thisGui,
+                        itemList.getPreviewItems());
+            }            
+        });
+        // Dump
+        dumpMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(thisGui,
+                        itemList.toString());
+            }            
         });
     }
     

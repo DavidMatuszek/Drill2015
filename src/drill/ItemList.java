@@ -20,13 +20,13 @@ import java.util.regex.Pattern;
  * level is maintained.
  * 
  * @author David Matuszek
- * @version Feb 28, 2016
+ * @version Jan 17, 2017
  */
 public class ItemList extends ArrayList<Item> {
     private PriorityQueue<Item> queue; // Non-virgin items, in priority order    
     private Preferences userPrefs;
     private File itemFile;
-    private static int minInterval = 0;
+    private static int minInterval = 5;
     
     /** 
      * Difficulty level set by user.
@@ -444,11 +444,17 @@ public class ItemList extends ArrayList<Item> {
     
     Item previousItem = null;
     
+    /**
+     * Decides which item to display next.
+     * @param forceVirgin If true, choose a virgin item.
+     * @return The item to display next.
+     */
     Item chooseNextItemToDisplay(boolean forceVirgin) {
         Item nextItem = chooseNextItemToDisplayHelper(forceVirgin);
         if (nextItem.equals(previousItem) && !queue.isEmpty()) {
             Item anotherItem = chooseNextItemToDisplayHelper(forceVirgin);
             if (anotherItem == null) return nextItem;
+            nextItem.setDisplayDate(minInterval + nextItem.getDisplayDate());
             queue.add(nextItem);
             previousItem = anotherItem;
             return anotherItem;
@@ -633,11 +639,21 @@ public class ItemList extends ArrayList<Item> {
     }
 
     /**
-     * Puts the item back into the priority queue. Incorrect adjustments
-     * to the displayDate removed 2/13/2016. 
+     * Puts the item back into the priority queue.
+     * <br />Incorrect adjustments to the displayDate removed 2/13/2016.
+     * <br />Fix to the effectiveness of minInterval,  1/17/2017
      * @param item The item to be re-inserted into the priority queue.
      */
     void put(Item item) {
+        // Try to ensure that minInterval is observed
+        Item[] temp = queue.toArray(new Item[0]);
+        if (queue.size() <= minInterval) {
+            int lastTime = temp[temp.length - 1].getDisplayDate();
+            item.setDisplayDate(lastTime + 1);
+        } else if (temp[minInterval].getDisplayDate() > item.getDisplayDate() ) {
+            item.setDisplayDate(temp[minInterval].getDisplayDate() + 1);
+        }
+        
         queue.offer(item);
     }
     
@@ -728,7 +744,7 @@ public class ItemList extends ArrayList<Item> {
     /**
      * Change the difficulty level. This involves updating every item in
      * the queue with a new interval and new display date.
-     * </ul>
+     * <br />Modified to also adjust minInterval 1/17/2017
      * @param newDifficulty 2.0 is very easy, 4.0 is very hard.
      */
     void setDifficulty(double newDifficulty) {
@@ -749,6 +765,7 @@ public class ItemList extends ArrayList<Item> {
             newQueue.add(item);
         }
         difficulty = newDifficulty;
+        minInterval = (int) (difficulty * difficulty);
         queue = newQueue;
     }
 
@@ -764,19 +781,19 @@ public class ItemList extends ArrayList<Item> {
 
     /**
      * Determine the interval for a correct item.
-     * @param difficulty The overall difficulty of the ItemList.
+     * @param newDifficulty The overall difficulty of the ItemList.
      * @param level The level of this item.
      * @return An interval for this item.
      */
-    static int getInterval(double difficulty, int level) {
+    static int getInterval(double newDifficulty, int level) {
         int interval;
         int maxLevel = 5;
-        int maxStep = (int)(Math.pow(difficulty, maxLevel));
+        int maxStep = (int)(Math.pow(newDifficulty, maxLevel));
         if (level <= maxLevel) {
-            interval = (int)(Math.pow(difficulty, level));
+            interval = (int)(Math.pow(newDifficulty, level));
         } else {
             int excess = level - maxLevel;
-            interval = (int)(Math.pow(difficulty, maxLevel) + (excess * maxStep));
+            interval = (int)(Math.pow(newDifficulty, maxLevel) + (excess * maxStep));
         }
         if (interval < minInterval) interval = minInterval;
         return interval;
@@ -803,6 +820,56 @@ public class ItemList extends ArrayList<Item> {
             System.out.println("    " + item);
         }
         System.out.println();
+    }
+    
+    /**
+     * Returns the first part of this ItemList in a printable form.
+     * Added 1/17/2017.
+     * @return Some information about this ItemList.
+     * @see java.util.AbstractCollection#toString()
+     */
+    @Override
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("PriorityQueue at time " + Time.now + ":\n");
+        sb.append("      key: stimulus || response || timesCorrect || timesIncorrect\n" +
+                  "             || consecutiveTimesCorrect || interval || displayDate\n");
+        Iterator<Item> iter = queue.iterator();
+        int n = 0;
+        int max = 10;
+        Item item = null;
+        while (iter.hasNext()) {
+            n += 1;
+            item = iter.next();
+            if (n <= max) sb.append("  " + n + "  " + item + "\n");
+        }
+        if (n > max) {
+            sb.append("...\n  " + n + "  " + item);
+        }
+        return sb.toString();
+    }
+
+    /**
+     * @return
+     */
+    public String getPreviewItems() {
+        ArrayList<String> al = new ArrayList<String>();
+        StringBuffer sb = new StringBuffer();
+        Iterator<Item> iter = queue.iterator();
+        int n = 0;
+        int max = 20;
+        Item item = null;
+        while (iter.hasNext() && n < max) {
+            n += 1;
+            item = iter.next();
+            String stim = item.getStimulus();
+            String resp = item.getResponse();
+            if (stim.length() < 25) stim = (stim + "                              ").substring(0, 25);
+            al.add(stim + "  " + resp + "\n");           
+        }
+        al.sort(null);
+        for (String s : al) sb.append(s );
+        return sb.toString();
     }
 
     /**
