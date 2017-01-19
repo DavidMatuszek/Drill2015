@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.PriorityQueue;
@@ -856,12 +857,14 @@ public class ItemList extends ArrayList<Item> {
         ArrayList<String> al = new ArrayList<String>();
         StringBuffer sb = new StringBuffer();
         Iterator<Item> iter = queue.iterator();
-        int n = 0;
-        int max = 20;
-        Item item = null;
-        while (iter.hasNext() && n < max) {
-            n += 1;
-            item = iter.next();
+        
+        // Iterator for PriorityQueue does not return items in priority order
+        Item[] items = (queue.toArray(new Item[0]));
+        java.util.Arrays.sort(items);
+        
+        int limit = Math.min(20, items.length);
+        for (int i = 0; i < limit; i += 1) {
+            Item item = items[i];
             String stim = item.getStimulus();
             String resp = item.getResponse();
             if (stim.length() < 25) stim = (stim + "                              ").substring(0, 25);
